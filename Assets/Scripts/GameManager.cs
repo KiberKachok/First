@@ -15,7 +15,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     public List<Race> races = new List<Race>();
     public List<Team> teams = new List<Team>();
     public List<Region> regions = new List<Region>();
-
     public static GameManager main;
     public Race neutral;
 
@@ -49,7 +48,25 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        foreach (var region in regions) region.RecalculateUnits();
+        List<int> units = new List<int>();
+        foreach (var region in regions)
+        {
+            units.Add(region.RecalculateUnits());
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("SetUnits", RpcTarget.Others, units);   
+        }
+    }
+
+    [PunRPC]
+    public void SetUnits(List<int> units)
+    {
+        for (int i = 0; i < regions.Count; i++)
+        {
+            regions[i].Units = units[i];
+        }
     }
 
     [PunRPC]

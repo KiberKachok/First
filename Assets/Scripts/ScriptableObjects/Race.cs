@@ -18,4 +18,5 @@ public class Race : ScriptableObject
     public float[] regionUpgradeUnitsGrowSpeed;
     public float[] regionUpgradeDefenceCoefficient;
 
+    public int portBuildPrice = 25;
 }

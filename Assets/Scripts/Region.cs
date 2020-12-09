@@ -14,6 +14,13 @@ public class Region : SerializedMonoBehaviour
         get { return _team; }
         set
         {
+            if (value != _team)
+            {
+                if (GameHandler.main.SelectedRegion == this)
+                {
+                    GameHandler.main.RecalculateUpgradeButton();
+                }
+            }
             _team = value;
             race = _team.race;
             StartCoroutine(Colorize(_team, 0.5f));
@@ -75,11 +82,29 @@ public class Region : SerializedMonoBehaviour
                 unitsMax = race.regionUpgradeMaxUnits[i - 1];
                 unitsGrowSpeed = race.regionUpgradeUnitsGrowSpeed[i - 1];
                 DefenceCoefficient = race.regionUpgradeDefenceCoefficient[i - 1];
-                _level = i;   
+                _level = i;
+                if (GameHandler.main.SelectedRegion == this)
+                {
+                    GameHandler.main.RecalculateUpgradeButton();
+                }
             }
         }
     }
-    private int _level = 1;
+    public int _level = 1;
+    public int GetUpgradePrice()
+    {
+        int price = 0;
+        if (Level != race.regionMaxLevel)
+        {
+            price = race.regionUpgradePrice[Level];
+        }
+        else
+        {
+            price = -1;
+        }
+
+        return price;
+    }
     
     [ShowInInspector]
     public float DefenceCoefficient {get; set;} = 0.1f;

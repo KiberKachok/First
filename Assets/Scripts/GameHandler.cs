@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Shapes;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -16,8 +17,11 @@ public class GameHandler : MonoBehaviour
         }
         set
         {
-            selectedRegion = value;
-            lines = RecalculateLines();
+            if (value != selectedRegion)
+            {
+                selectedRegion = value;
+                lines = RecalculateLines();
+            }
         }
     }
     [SerializeField] private Region selectedRegion;
@@ -47,8 +51,53 @@ public class GameHandler : MonoBehaviour
     Dictionary<Vector3, Vector3> lines = new Dictionary<Vector3, Vector3>();
     [Space(10)]
     public float linePadding = 0.5f;
-    public DashedLineStyle main;
+    public DashedLineStyle mainStyle;
     public DashedLineStyle common;
+
+    public void RecalculateUpgradeButton()
+    {
+        if (SelectedRegion && SelectedRegion.cellType == CellType.Land && EndRegion == null)
+        {
+            upgradeButton.transform.gameObject.SetActive(true);
+            upgradeRegionLevelText.text = SelectedRegion.Level.ToString();
+            if (selectedRegion.Team == GameManager.main.ownTeam)
+            {
+                upgradeButton.interactable = true;
+                int price = SelectedRegion.GetUpgradePrice();
+                if (price == -1)
+                {
+                    upgradeRegionPriceText.text = "";
+                }
+                else
+                {
+                    upgradeRegionPriceText.text = price.ToString();
+                }
+            }
+            else
+            {
+                upgradeButton.interactable = false;
+                upgradeRegionPriceText.text = "";
+            }
+        }
+        else
+        {
+            upgradeButton.transform.gameObject.SetActive(false);
+        }
+    }
+    public void UpgradeRegion()
+    {
+        selectedRegion.Level++;
+    }
+    public Button upgradeButton;
+    public TextMeshProUGUI upgradeRegionPriceText;
+    public TextMeshProUGUI upgradeRegionLevelText;
+
+    public static GameHandler main;
+
+    void Awake()
+    {
+        main = this;
+    }
 
     void Start()
     {
@@ -161,6 +210,7 @@ public class GameHandler : MonoBehaviour
                 }
             }
         }
+        RecalculateUpgradeButton();
     }
 
     void CreateAbility(Ability _ability)
@@ -185,7 +235,7 @@ public class GameHandler : MonoBehaviour
     //TODO: Переделать на LineRenderer
     private void OnPostRender()
     {
-        DashedLineStyle lineStyle = EndRegion ? main : common;
+        DashedLineStyle lineStyle = EndRegion ? mainStyle : common;
         
         if(lines.Count > 0 && SelectedRegion.Team == GameManager.main.ownTeam)
             foreach (var line in lines)
