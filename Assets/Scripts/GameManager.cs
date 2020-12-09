@@ -35,23 +35,23 @@ public class GameManager : MonoBehaviourPunCallbacks
             for (int i = 0; i < _players.Length; i++) _races[i] = races[Random.Range(0, races.Count)];
 
             Region[] _regions = new Region[_races.Length];
-            List<Region> ableRegions = regions.GetRange(0, regions.Count);
-            for (int i = 0; i < _races.Length; i++)
-            {
-                //_regions[i] = ableRegions.Where(p => p.Team == null && p.mainRace == _races[i]).ToArray()[0];
-                ableRegions.Remove(_regions[i]);
-            }
-            
+            List<Region> lands = regions.Where(p => p.cellType == CellType.Land).ToList();
+            _regions = lands.OrderBy(a => Guid.NewGuid()).ToList().GetRange(0, lands.Count).ToArray();
+
             photonView.RPC("Initialize", RpcTarget.All, _players, _races, _regions);
         }
     }
 
     private void Update()
     {
-        List<int> units = new List<int>();
-        foreach (var region in regions)
+        for (int i = 0; i < regions.Count; i++)
+            regions[i].RecalculateUnits();
+        
+        
+        int[] units = new int[regions.Count];
+        for(int i = 0; i < regions.Count; i++)
         {
-            units.Add(region.RecalculateUnits());
+            units[i] = regions[i].Units;
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void SetUnits(List<int> units)
+    public void SetUnits(int[] units)
     {
         for (int i = 0; i < regions.Count; i++)
         {
