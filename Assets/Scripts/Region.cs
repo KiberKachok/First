@@ -14,21 +14,31 @@ public class Region : SerializedMonoBehaviour
         get { return _team; }
         set
         {
-            if (value != _team)
-            {
-                if (GameHandler.main.SelectedRegion == this)
-                {
-                    GameHandler.main.RecalculateUpgradeButton();
-                }
-            }
             _team = value;
-            race = _team.race;
-            StartCoroutine(Colorize(_team, 0.5f));
+
+            Race = _team ? _team.race : GameManager.main.neutral;
+            _material.color = _team ? _team.regionColor : GameManager.main.neutral.regionColor;
+
+            if (_gameHandler.SelectedRegion == this)
+               _gameHandler.RecalculateUpgradeButton();
+            
         }
     }
     private Team _team;
 
-    [PropertyOrder(-1)]
+    [ShowInInspector, PropertyOrder(-1)]
+    public Race Race
+    {
+        get
+        {
+            return race;
+        }
+        set
+        {
+            race = value; 
+            Level = _level;
+        }
+    }
     public Race race;
     
     public int RecalculateUnits()
@@ -78,22 +88,21 @@ public class Region : SerializedMonoBehaviour
         {
             if (cellType == CellType.Land)
             {
-                int i = Mathf.Clamp(value, 1, race.regionMaxLevel);
-                unitsMax = race.regionUpgradeMaxUnits[i - 1];
-                unitsGrowSpeed = race.regionUpgradeUnitsGrowSpeed[i - 1];
-                DefenceCoefficient = race.regionUpgradeDefenceCoefficient[i - 1];
+                int i = Mathf.Clamp(value, 1, Race.regionMaxLevel);
+                unitsMax = Race.regionUpgradeMaxUnits[i - 1];
+                unitsGrowSpeed = Race.regionUpgradeUnitsGrowSpeed[i - 1];
+                DefenceCoefficient = Race.regionUpgradeDefenceCoefficient[i - 1];
                 _level = i;
-                if (GameHandler.main.SelectedRegion == this)
-                {
-                    GameHandler.main.RecalculateUpgradeButton();
-                }
+                
+                if (_gameHandler.SelectedRegion == this)
+                    _gameHandler.RecalculateUpgradeButton();
             }
         }
     }
     public int _level = 1;
     public int GetUpgradePrice()
     {
-        int price = 0;
+        int price;
         if (Level != race.regionMaxLevel)
         {
             price = race.regionUpgradePrice[Level];
@@ -108,13 +117,28 @@ public class Region : SerializedMonoBehaviour
     
     [ShowInInspector]
     public float DefenceCoefficient {get; set;} = 0.1f;
+    
+    #region RarelyUsedVariables
+    
+    [PropertyOrder(1), PropertySpace(15)]
+    public CellType cellType;
+    
+    [PropertyOrder(2), DictionaryDrawerSettings(KeyLabel = "Region", ValueLabel = "isSeparated")]
+    public Dictionary<Region, bool> neighbours;
+
+    private GameManager _gameManager;
+    private GameHandler _gameHandler;
+    private UnitsCounterGUI _unitsCounterGui;
+    private Material _material;
+
+    #endregion
 
     void Start()
     {
         _material = GetComponent<MeshRenderer>().material;
-        _unitsCounterGui.cellType = cellType;
         _unitsCounterGui.SetText(Units.ToString());
         _gameManager = GameManager.main;
+        _gameHandler = GameHandler.main;
 
         if (cellType == CellType.Land)
         {
@@ -128,20 +152,6 @@ public class Region : SerializedMonoBehaviour
             unitsMax = int.MaxValue;
         }
     }
-
-    #region RarelyUsedVariables
-    
-    [PropertyOrder(1), PropertySpace(15)]
-    public CellType cellType;
-    
-    [PropertyOrder(2), DictionaryDrawerSettings(KeyLabel = "Region", ValueLabel = "isSeparated")]
-    public Dictionary<Region, bool> neighbours;
-
-    private GameManager _gameManager;
-    private UnitsCounterGUI _unitsCounterGui;
-    private Material _material;
-
-    #endregion
 
     #region Utils
     
@@ -193,6 +203,7 @@ public class Region : SerializedMonoBehaviour
     public void SetCounter(UnitsCounterGUI counter)
     {
         _unitsCounterGui = counter;
+        counter.mode = cellType == CellType.Land ? CounterMode.RegionLand : CounterMode.RegionWater;
     }
 
     public bool IsNeighbour(Region n)

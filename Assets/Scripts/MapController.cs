@@ -99,6 +99,18 @@ public class MapController : MonoBehaviour
             mat.color = new Color(red, green, blue, 1);
         }
     }
+    
+    [ContextMenu("RandomizeNames")]
+    public void RandomizeNames()
+    {
+        List<Transform> childrenTransforms = GetComponentsInChildren<Transform>().Where(p => p.parent == this.transform).ToList();
+        childrenTransforms.Remove(transform);
+
+        for (int i = 0; i < childrenTransforms.Count; i++)
+        {
+            childrenTransforms[i].name = "Plane " + i;
+        }
+    }
 
     [ContextMenu("InitializeBorder")]
     public void InitializeBorder()

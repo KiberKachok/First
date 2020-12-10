@@ -44,25 +44,30 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        for (int i = 0; i < regions.Count; i++)
-            regions[i].RecalculateUnits();
-        
-        
-        int[] units = new int[regions.Count];
-        for(int i = 0; i < regions.Count; i++)
-        {
-            units[i] = regions[i].Units;
-        }
-
         if (PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("SetUnits", RpcTarget.Others, units);   
+        {   
+            for (int i = 0; i < regions.Count; i++)
+                regions[i].RecalculateUnits();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {   
+            int[] units = new int[regions.Count];
+        
+            for(int i = 0; i < regions.Count; i++)
+                units[i] = regions[i].Units;
+    
+            photonView.RPC("SetUnits", RpcTarget.Others, string.Join("-", units));   
         }
     }
 
     [PunRPC]
-    public void SetUnits(int[] units)
+    public void SetUnits(string msg)
     {
+        int[] units = msg.Split('-').Select(p => Convert.ToInt32(p)).ToArray();
         for (int i = 0; i < regions.Count; i++)
         {
             regions[i].Units = units[i];
@@ -116,13 +121,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     object DeserializeRegion(byte[] data)
     {
         string s = System.Text.Encoding.UTF8.GetString(data, 0, data.Length);
-        Region region = regions.Where(p => p.GetInstanceID().ToString() == s).ToArray()[0];
+        Region region = regions.Where(p => p.name == s).ToArray()[0];
         return region;
     }
 
     byte[] SerializeRegion(object region)
     {
-        byte[] data = System.Text.Encoding.UTF8.GetBytes(((Region)region).GetInstanceID().ToString());
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(((Region)region).name);
         return data;
     }
 

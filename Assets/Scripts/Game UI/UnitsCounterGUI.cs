@@ -12,26 +12,26 @@ public class UnitsCounterGUI : MonoBehaviour
     [SerializeField] private float horPadding = 0.1f;
     [SerializeField] AnimationCurve scaleCurve;
 
-    public CellType cellType;
-    [SerializeField] private RectTransform rectTransform;
-    [SerializeField] private RectTransform imageTransform;
-    [SerializeField] private RectTransform textTransform;
-    [SerializeField] private TextMeshProUGUI text;
-    [SerializeField] private LeanPinchCamera leanPinchCamera;
+    public CounterMode mode;
+    private RectTransform _rectTransform;
+    private RectTransform _imageTransform;
+    private RectTransform _textTransform;
+    private TextMeshProUGUI _text;
+    private LeanPinchCamera _leanPinchCamera;
 
     public void SetText(string message)
     {
-        text.text = message;
+        _text.text = message;
 
-        if (message == "0" && cellType == CellType.Water)
+        if (mode == CounterMode.RegionWater && message == "0")
         {
-            imageTransform.gameObject.SetActive(false);
-            textTransform.gameObject.SetActive(false);
+            _imageTransform.gameObject.SetActive(false);
+            _textTransform.gameObject.SetActive(false);
         }
         else
         {
-            imageTransform.gameObject.SetActive(true);
-            textTransform.gameObject.SetActive(true);
+            _imageTransform.gameObject.SetActive(true);
+            _textTransform.gameObject.SetActive(true);
         }
 
         StartCoroutine(RecalculateSize());
@@ -40,19 +40,31 @@ public class UnitsCounterGUI : MonoBehaviour
     IEnumerator RecalculateSize()
     {
         yield return null;
-        imageTransform.sizeDelta = new Vector2(textTransform.sizeDelta.x + horPadding * 2, imageTransform.sizeDelta.y);
-        rectTransform.sizeDelta = imageTransform.sizeDelta;
+        _imageTransform.sizeDelta = new Vector2(_textTransform.sizeDelta.x + horPadding * 2, _imageTransform.sizeDelta.y);
+        _rectTransform.sizeDelta = _imageTransform.sizeDelta;
     }
 
     //TODO: Оптимизировать получение LeanPinchCamera в UnitsCounterGUI
-    private void Start()
+    private void Awake()
     {
-        leanPinchCamera = Camera.main.GetComponent<LeanPinchCamera>();
+        _leanPinchCamera = Camera.main.GetComponent<LeanPinchCamera>();
+        _rectTransform = GetComponent<RectTransform>();
+        _imageTransform = transform.GetChild(0).GetComponent<RectTransform>();
+        _textTransform = transform.GetChild(1).GetComponent<RectTransform>();
+        _text = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
     }
 
     private void LateUpdate()
     {
-        float s = scaleCurve.Evaluate(leanPinchCamera.Zoom / leanPinchCamera.ClampMax);
-        rectTransform.localScale = new Vector3(s, s, s);
+        float s = scaleCurve.Evaluate(_leanPinchCamera.Zoom / _leanPinchCamera.ClampMax);
+        if (mode == CounterMode.Units) s *= 8;
+        _rectTransform.localScale = new Vector3(s, s, s);
     }
+}
+
+public enum CounterMode
+{
+    RegionWater,
+    RegionLand,
+    Units
 }

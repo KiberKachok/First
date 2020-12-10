@@ -234,11 +234,11 @@ RectTransform:
   m_Father: {fileID: 1303545583}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 20, y: -390}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 20, y: 20}
   m_SizeDelta: {x: 70, y: 70}
-  m_Pivot: {x: 0, y: 1}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &78283473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1106,7 +1106,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 4, y: 15.17}
+  m_AnchoredPosition: {x: 4, y: 15.169983}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1048512120
@@ -1449,7 +1449,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -4, y: 15.17}
+  m_AnchoredPosition: {x: -4, y: 15.169983}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &1205093388
@@ -2217,6 +2217,7 @@ MonoBehaviour:
   upgradeButton: {fileID: 78283474}
   upgradeRegionPriceText: {fileID: 1205093388}
   upgradeRegionLevelText: {fileID: 1048512120}
+  unitsPrefab: {fileID: 8909340052551977956, guid: 768882ef117b56148b5078d690d3b6f8, type: 3}
 --- !u!114 &1610751844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16129,7 +16130,7 @@ GameObject:
   - component: {fileID: 998468949827386946}
   - component: {fileID: 4520756660662810322}
   m_Layer: 0
-  m_Name: Plane.037
+  m_Name: Plane.200
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

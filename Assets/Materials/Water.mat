@@ -145,6 +145,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - Boolean_5FFB5ABC: 1
+    - Boolean_6E1892CD: 1
     - Boolean_B0B47117: 0
     - Boolean_D436F3BD: 1
     - Vector1_242BAAB3: 3.41
