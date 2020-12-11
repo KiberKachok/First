@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public List<Race> races = new List<Race>();
     public List<Team> teams = new List<Team>();
     public List<Region> regions = new List<Region>();
+    
     public static GameManager main;
     public Race neutral;
 

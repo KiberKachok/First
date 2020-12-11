@@ -69,9 +69,15 @@ public class GameHandler : MonoBehaviourPunCallbacks
     {
         main = this;
     }
+    
     void Start()
     {
         sendUnitsPercent = sendUnitsSlider.value;
+    }
+
+    private void Update()
+    {
+        RecalculateUpgradeButton();
     }
 
     public void OnTap(Vector3 pos)
@@ -156,24 +162,19 @@ public class GameHandler : MonoBehaviourPunCallbacks
         if(activeAbility) Destroy(activeAbility);
     }
     
+    //TODO: Переделать на золото?
     public void RecalculateUpgradeButton()
     {
         if (SelectedRegion && SelectedRegion.cellType == CellType.Land && EndRegion == null)
         {
             upgradeButton.transform.gameObject.SetActive(true);
             upgradeRegionLevelText.text = SelectedRegion.Level.ToString();
-            if (_selectedRegion.Team == GameManager.main.ownTeam)
+            
+            if (SelectedRegion.Team == GameManager.main.ownTeam)
             {
-                upgradeButton.interactable = true;
                 int price = SelectedRegion.GetUpgradePrice();
-                if (price == -1)
-                {
-                    upgradeRegionPriceText.text = "";
-                }
-                else
-                {
-                    upgradeRegionPriceText.text = price.ToString();
-                }
+                upgradeRegionPriceText.text = price == -1 ? "" : price.ToString();
+                upgradeButton.interactable = !(price == -1 || price > SelectedRegion.Units);
             }
             else
             {
@@ -186,9 +187,14 @@ public class GameHandler : MonoBehaviourPunCallbacks
             upgradeButton.transform.gameObject.SetActive(false);
         }
     }
+    
     public void UpgradeRegion()
     {
-        _selectedRegion.Level++;
+        if (SelectedRegion.Units >= SelectedRegion.GetUpgradePrice())
+        {
+            SelectedRegion.Units -= SelectedRegion.GetUpgradePrice();
+            _selectedRegion.Level++;
+        }
     }
 
     [PunRPC]
@@ -215,7 +221,7 @@ public class GameHandler : MonoBehaviourPunCallbacks
         Debug.Log("Отправить войска");
         if (SelectedRegion && EndRegion)
         {
-            photonView.RPC("SendUnits", RpcTarget.MasterClient, SelectedRegion, EndRegion, sendUnitsPercent );
+            photonView.RPC("SendUnits", RpcTarget.All, SelectedRegion, EndRegion, sendUnitsPercent );
         }
         SelectedRegion = null;
         EndRegion = null;
