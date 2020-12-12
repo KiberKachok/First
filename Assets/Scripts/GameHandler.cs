@@ -218,7 +218,6 @@ public class GameHandler : MonoBehaviourPunCallbacks
     }
     public void AgreeSendUnits()
     {
-        Debug.Log("Отправить войска");
         if (SelectedRegion && EndRegion)
         {
             photonView.RPC("SendUnits", RpcTarget.All, SelectedRegion, EndRegion, sendUnitsPercent );
@@ -228,7 +227,6 @@ public class GameHandler : MonoBehaviourPunCallbacks
     }
     public void CancelSendUnits()
     {
-        Debug.Log("Отменить отправку войск");
         SelectedRegion = null;
         EndRegion = null;
     }

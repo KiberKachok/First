@@ -15,27 +15,28 @@ public class NetworkController : MonoBehaviourPunCallbacks
         PhotonNetwork.NickName = "34253_ТимурМудрый";
     }
 
-    // Update is called once per frame
-    void Update()
+    public void CreateRoom()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            PhotonNetwork.CreateRoom("new room", new RoomOptions(), TypedLobby.Default);
-        }
-        
-        if (Input.GetKeyDown(KeyCode.J))
-        {
-            PhotonNetwork.JoinRandomRoom();
-        }
-        
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            PhotonNetwork.LoadLevel("main");
-        }
+        PhotonNetwork.CreateRoom("new room", new RoomOptions(), TypedLobby.Default);
+    }
+
+    public void JoinRandomRoom()
+    {
+        PhotonNetwork.JoinRandomRoom();
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel("main");
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        Debug.Log("Подключился к мастеру");
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("Joined Room");
+        Debug.Log("Подключился к комнате");
     }
 }
