@@ -13,7 +13,7 @@ public class Team : ScriptableObject
     public Color regionColor;
     public void Init(Player owner, Race race)
     {
-        ownerHash = owner.GetHash();
+        ownerHash = owner.NickName;
         this.race = race;
         name = race.header;
         regionColor = race.regionColor;

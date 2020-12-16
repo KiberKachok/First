@@ -7,17 +7,15 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UnitsCounterGUI : MonoBehaviour
+public class UnitsCounter : MonoBehaviour
 {
     [SerializeField] private float horPadding = 0.1f;
-    [SerializeField] AnimationCurve scaleCurve;
 
     public CounterMode mode;
     private RectTransform _rectTransform;
     private RectTransform _imageTransform;
     private RectTransform _textTransform;
     private TextMeshProUGUI _text;
-    private LeanPinchCamera _leanPinchCamera;
 
     public void SetText(string message)
     {
@@ -44,21 +42,13 @@ public class UnitsCounterGUI : MonoBehaviour
         _rectTransform.sizeDelta = _imageTransform.sizeDelta;
     }
 
-    //TODO: Оптимизировать получение LeanPinchCamera в UnitsCounterGUI
+    //TODO: Оптимизировать получение LeanPinchCamera в UnitsCounter
     private void Awake()
     {
-        _leanPinchCamera = Camera.main.GetComponent<LeanPinchCamera>();
         _rectTransform = GetComponent<RectTransform>();
         _imageTransform = transform.GetChild(0).GetComponent<RectTransform>();
         _textTransform = transform.GetChild(1).GetComponent<RectTransform>();
         _text = transform.GetChild(1).GetComponent<TextMeshProUGUI>();
-    }
-
-    private void LateUpdate()
-    {
-        float s = scaleCurve.Evaluate(_leanPinchCamera.Zoom / _leanPinchCamera.ClampMax);
-        if (mode == CounterMode.Units) s *= 8;
-        _rectTransform.localScale = new Vector3(s, s, s);
     }
 }
 

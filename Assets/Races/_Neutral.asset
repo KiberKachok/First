@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a2308e3b461c2c04cba5629f7ff51d4e, type: 3}
-  m_Name: Neutral
+  m_Name: _Neutral
   m_EditorClassIdentifier: 
   header: 
   regionColor: {r: 0.6039216, g: 0.5882353, b: 0.54509807, a: 0}
@@ -19,10 +19,10 @@ MonoBehaviour:
   regionUpgradePrice: 000000000a0000000f0000001e000000
   regionUpgradeMaxUnits: 0a0000000f0000001e00000028000000
   regionUpgradeUnitsGrowSpeed:
+  - 0.1
+  - 0.2
   - 0.3
-  - 0.4
-  - 0.6
-  - 0.8
+  - 0.5
   regionUpgradeDefenceCoefficient:
   - 0
   - 0.1

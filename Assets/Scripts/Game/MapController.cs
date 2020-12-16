@@ -79,7 +79,7 @@ public class MapController : MonoBehaviour
             {
                 Region region = child.gameObject.GetComponent<Region>();
                 GameObject tmp = Instantiate(unitsCounterPrefab, child.transform, false);
-                region.SetCounter(tmp.GetComponent<UnitsCounterGUI>());
+                region.SetCounter(tmp.GetComponent<UnitsCounter>());
             }
         }
     }

@@ -65,7 +65,7 @@ public class Region : SerializedMonoBehaviour
             if (value != _units)
             {
 
-                _unitsCounterGui.SetText(value.ToString());
+                _unitsCounter.SetText(value.ToString());
                 _unitsCurrent = value + (_unitsCurrent - Mathf.Floor(_unitsCurrent));
             }
 
@@ -128,7 +128,7 @@ public class Region : SerializedMonoBehaviour
 
     private GameManager _gameManager;
     private GameHandler _gameHandler;
-    private UnitsCounterGUI _unitsCounterGui;
+    private UnitsCounter _unitsCounter;
     private Material _material;
 
     #endregion
@@ -136,7 +136,7 @@ public class Region : SerializedMonoBehaviour
     void Start()
     {
         _material = GetComponent<MeshRenderer>().material;
-        _unitsCounterGui.SetText(Units.ToString());
+        _unitsCounter.SetText(Units.ToString());
         _gameManager = GameManager.main;
         _gameHandler = GameHandler.main;
 
@@ -200,9 +200,9 @@ public class Region : SerializedMonoBehaviour
         }
     }
 
-    public void SetCounter(UnitsCounterGUI counter)
+    public void SetCounter(UnitsCounter counter)
     {
-        _unitsCounterGui = counter;
+        _unitsCounter = counter;
         counter.mode = cellType == CellType.Land ? CounterMode.RegionLand : CounterMode.RegionWater;
     }
 

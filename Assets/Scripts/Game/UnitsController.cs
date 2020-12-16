@@ -14,7 +14,7 @@ public class UnitsController : MonoBehaviour
         set
         {
             units = value;
-            _unitsCounterGui.SetText(Units.ToString());
+            _unitsCounter.SetText(Units.ToString());
         }
     }
     private int units;
@@ -25,7 +25,7 @@ public class UnitsController : MonoBehaviour
     public Team team;
     public float speed = 5;
 
-    private UnitsCounterGUI _unitsCounterGui;
+    private UnitsCounter _unitsCounter;
     
     void Update()
     {
@@ -65,7 +65,7 @@ public class UnitsController : MonoBehaviour
 
     public void Init(Region from, Region to, int units)
     {
-        _unitsCounterGui = GetComponent<UnitsCounterGUI>();
+        _unitsCounter = GetComponent<UnitsCounter>();
         this.from = from;
         this.to = to;
         this.Units = units;
