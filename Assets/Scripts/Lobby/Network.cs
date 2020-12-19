@@ -25,18 +25,6 @@ public class Network : MonoBehaviourPunCallbacks
     private void Update()
     {
         State = PhotonNetwork.NetworkClientState;
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            Connect();
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            Disconnect();
-        }
-        if (Input.GetKeyDown(KeyCode.J))
-        {
-            PhotonNetwork.JoinLobby();
-        }
     }
 
     [ShowInInspector]
@@ -87,7 +75,9 @@ public class Network : MonoBehaviourPunCallbacks
         while (true)
         {
             yield return new WaitForSeconds(connectionCheckRate);
-            if (State == ClientState.Leaving || State == ClientState.Disconnected)
+            if (State == ClientState.Leaving 
+            || State == ClientState.Disconnected 
+            || State == ClientState.DisconnectingFromGameServer)
             {
                 ClientState preState = State;
                 yield return new WaitForSeconds(connectionCheckRate);

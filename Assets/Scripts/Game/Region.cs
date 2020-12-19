@@ -18,6 +18,7 @@ public class Region : SerializedMonoBehaviour
 
             Race = _team ? _team.race : GameManager.main.neutral;
             _material.color = _team ? _team.regionColor : GameManager.main.neutral.regionColor;
+            //_unitsCounter.SetColor(_team ? _team.counterColor : GameManager.main.neutral.counterColor);
 
             if (_gameHandler.SelectedRegion == this)
                _gameHandler.RecalculateUpgradeButton();

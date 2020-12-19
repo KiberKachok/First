@@ -11,6 +11,7 @@ public class Team : ScriptableObject
     public string ownerHash;
     public Race race;
     public Color regionColor;
+    public Color counterColor;
     public void Init(Player owner, Race race)
     {
         ownerHash = owner.NickName;

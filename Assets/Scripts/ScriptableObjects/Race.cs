@@ -10,6 +10,7 @@ public class Race : ScriptableObject
 {
     public string header;
     public Color regionColor;
+    public Color counterColor;
     public List<Ability> abilities = new List<Ability>();
 
     public int regionMaxLevel = 4;

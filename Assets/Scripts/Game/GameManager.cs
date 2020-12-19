@@ -5,6 +5,7 @@ using System.Linq;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     
     public static GameManager main;
     public Race neutral;
+    public Color[] teamColors = new Color[]{};
 
     private void Awake()
     {
@@ -82,6 +84,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Team team = ScriptableObject.CreateInstance<Team>();
             team.Init(_players[i], _races[i]);
+            team.regionColor = teamColors[i];
+            team.counterColor = teamColors[i] - new Color(10, 10, 10);
             teams.Add(team);
             _regions[i].Team = teams[i];
             if (PhotonNetwork.LocalPlayer == _players[i]) ownTeam = team;

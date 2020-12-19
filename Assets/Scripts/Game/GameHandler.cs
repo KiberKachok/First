@@ -216,24 +216,6 @@ public class GameHandler : MonoBehaviourPunCallbacks
             }
         }
     }
-    public void AgreeSendUnits()
-    {
-        if (SelectedRegion && EndRegion)
-        {
-            photonView.RPC("SendUnits", RpcTarget.All, SelectedRegion, EndRegion, sendUnitsPercent );
-        }
-        SelectedRegion = null;
-        EndRegion = null;
-    }
-    public void CancelSendUnits()
-    {
-        SelectedRegion = null;
-        EndRegion = null;
-    }
-    public void OnUnitsSliderChanged(float v)
-    {
-        sendUnitsPercent = v;
-    }
 
     #region Utils
     

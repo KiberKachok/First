@@ -35,6 +35,11 @@ public class UnitsCounter : MonoBehaviour
         StartCoroutine(RecalculateSize());
     }
 
+    public void SetColor(Color color)
+    {
+        GetComponentInChildren<Image>().color = color;
+    }
+
     IEnumerator RecalculateSize()
     {
         yield return null;

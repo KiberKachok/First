@@ -20,10 +20,10 @@ MonoBehaviour:
   regionUpgradePrice: 000000000a0000000f0000001e000000
   regionUpgradeMaxUnits: 0a0000000f0000001e00000028000000
   regionUpgradeUnitsGrowSpeed:
-  - 0.4
-  - 0.6
+  - 0.3
   - 0.7
-  - 1
+  - 1.1
+  - 1.5
   regionUpgradeDefenceCoefficient:
   - 0.1
   - 0.15
