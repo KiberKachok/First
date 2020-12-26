@@ -144,7 +144,9 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Boolean_6E1892CD: 0
     - Boolean_B0B47117: 0
+    - Vector1_242BAAB3: 3.41
     - Vector1_7D6D259: 7.9
     - Vector1_8E847765: 0
     - _AlphaClip: 0
@@ -206,7 +208,7 @@ Material:
     - _BASE_COLOR: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 0.055378936, g: 0.7264151, b: 0.023985418, a: 1}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
-    - _Color: {r: 0.6037736, g: 0.5879421, b: 0.5439658, a: 1}
+    - _Color: {r: 0.7254902, g: 0.6392157, b: 0.49411765, a: 1}
     - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _EMISSION_COLOR: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

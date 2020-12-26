@@ -395,7 +395,7 @@ MonoBehaviour:
   m_GalleryBorderSize: 2
   m_Selected: 0
   m_PreviewGalleryZoom: 1
-  m_PreviewZoom: 1
+  m_PreviewZoom: 3.51
   m_RefreshMode: 0
   m_AutoRefresh: 0
   m_RefreshDelay: 5
