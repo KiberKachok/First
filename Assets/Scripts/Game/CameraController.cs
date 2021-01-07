@@ -28,5 +28,19 @@ public class CameraController : MonoBehaviour
     {
         OnPreRender();
     }
-    
+
+    public void Align(Transform target)
+    {
+        StartCoroutine(AlignRoutine(target));
+    }
+
+    IEnumerator AlignRoutine(Transform target)
+    {
+        while (Vector3.Distance(new Vector3(target.position.x, transform.position.y, target.position.z), transform.position) > 0.02)
+        {
+            transform.position = Vector3.Lerp(transform.position, new Vector3(target.position.x, transform.position.y, target.position.z), 10 * Time.deltaTime);
+            yield return null;
+        }
+        //transform.position = new Vector3(target.position.x, transform.position.y, target.position.z);
+    }
 }

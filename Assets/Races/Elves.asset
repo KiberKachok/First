@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Elves
   m_EditorClassIdentifier: 
   header: "\u042D\u043B\u044C\u0444\u044B"
-  description: 
+  icon: {fileID: 21300000, guid: fb89e0e532e373e4e9b970c2e1d7fb44, type: 3}
   regionColor: {r: 0.47805393, g: 0.9056604, b: 0.18369527, a: 0}
   abilities: []
   regionMaxLevel: 4

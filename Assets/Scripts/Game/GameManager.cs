@@ -16,33 +16,28 @@ public class GameManager : MonoBehaviourPunCallbacks
     public List<Race> races = new List<Race>();
     public List<Team> teams = new List<Team>();
     public List<Region> regions = new List<Region>();
+    public static int RoomSeed;
     
     public static GameManager main;
     public Race neutral;
     public Color[] teamColors = new Color[]{};
+    public AvatarController avatarController;
 
     private void Awake()
     {
         PhotonPeer.RegisterType(typeof(Race), 255, SerializeRace, DeserializeRace);
         PhotonPeer.RegisterType(typeof(Region), 254, SerializeRegion, DeserializeRegion);
         main = this;
+        RoomSeed = Convert.ToInt32(PhotonNetwork.CurrentRoom.Name);
     }
 
-    private void Start()
+    public void StartGame(Player[] _players, Race[] _races)
     {
-        if(PhotonNetwork.IsMasterClient)
-        {
-            Player[] _players = PhotonNetwork.CurrentRoom.Players.Values.ToArray();
-            
-            Race[] _races = new Race[_players.Length];
-            for (int i = 0; i < _players.Length; i++) _races[i] = races[Random.Range(0, races.Count)];
-
-            Region[] _regions = new Region[_races.Length];
-            List<Region> lands = regions.Where(p => p.cellType == CellType.Land).ToList();
-            _regions = lands.OrderBy(a => Guid.NewGuid()).ToList().GetRange(0, lands.Count).ToArray();
-
-            photonView.RPC("Initialize", RpcTarget.All, _players, _races, _regions);
-        }
+        Region[] _regions = new Region[_races.Length];
+        List<Region> lands = regions.Where(p => p.cellType == CellType.Land).ToList();
+        _regions = lands.OrderBy(a => Guid.NewGuid()).ToList().GetRange(0, lands.Count).ToArray();
+        
+        photonView.RPC("Initialize", RpcTarget.All, _players, _races, _regions);
     }
 
     private void Update()
@@ -84,11 +79,15 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Team team = ScriptableObject.CreateInstance<Team>();
             team.Init(_players[i], _races[i]);
-            team.regionColor = teamColors[i];
-            team.counterColor = teamColors[i] - new Color(10, 10, 10);
+            team.regionColor = GetPlayerColor(_players[i]);
+            team.counterColor = team.regionColor - new Color(10, 10, 10);
             teams.Add(team);
             _regions[i].Team = teams[i];
-            if (PhotonNetwork.LocalPlayer == _players[i]) ownTeam = team;
+            if (PhotonNetwork.LocalPlayer == _players[i])
+            {
+                ownTeam = team;
+                Camera.main.GetComponent<CameraController>().Align(_regions[i].transform);
+            }
         }
     }
     
@@ -105,7 +104,12 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         main = this;
     }
-    
+
+    public Color GetPlayerColor(Player player)
+    {
+        Color color = teamColors[(player.ActorNumber + RoomSeed) % teamColors.Length];
+        return color;
+    }
     #endregion
 
     #region NetworkSerializer

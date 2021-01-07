@@ -15,12 +15,6 @@ public class GUIController : MonoBehaviourPunCallbacks
     {
         _gameHandler = FindObjectOfType<GameHandler>();
     }
-    
-    public void LeaveRoom()
-    {
-        PhotonNetwork.LoadLevel("Menu");
-        PhotonNetwork.LeaveRoom();
-    }
 
     public void AgreeSendUnits()
     {

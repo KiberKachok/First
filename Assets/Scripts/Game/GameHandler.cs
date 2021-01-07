@@ -21,7 +21,7 @@ public class GameHandler : MonoBehaviourPunCallbacks
             if (value != _selectedRegion)
             {
                 _selectedRegion = value;
-                lines = RecalculateLines();
+                _lineDrawer.RecalculateLines();
             }
         }
     }
@@ -38,24 +38,19 @@ public class GameHandler : MonoBehaviourPunCallbacks
             _endRegion = value;
             sendUnitsPanel.SetActive(_endRegion != null);
             if (_endRegion) sendUnitsSlider.value = 1f;
-            lines = RecalculateLines();
+            _lineDrawer.RecalculateLines();
         }
     }
     private Region _endRegion;
 
     public Ability activeAbility;
-    
+
+    private LineDrawer _lineDrawer;
     #region RarelyUsedVars
 
     public GameObject sendUnitsPanel;
     public Slider sendUnitsSlider;
     public float sendUnitsPercent;
-
-    Dictionary<Vector3, Vector3> lines = new Dictionary<Vector3, Vector3>();
-    [Space(10)]
-    public float linePadding = 0.5f;
-    public DashedLineStyle mainStyle;
-    public DashedLineStyle common;
 
     public Button upgradeButton;
     public TextMeshProUGUI upgradeRegionPriceText;
@@ -68,11 +63,12 @@ public class GameHandler : MonoBehaviourPunCallbacks
     void Awake()
     {
         main = this;
+        _lineDrawer = GetComponent<LineDrawer>();
     }
-    
-    void Start()
+
+    public void StartGame()
     {
-        sendUnitsPercent = sendUnitsSlider.value;
+        
     }
 
     private void Update()
@@ -216,62 +212,4 @@ public class GameHandler : MonoBehaviourPunCallbacks
             }
         }
     }
-
-    #region Utils
-    
-    //TODO: Переделать на LineRenderer
-    private void OnPostRender()
-    {
-        DashedLineStyle lineStyle = EndRegion ? mainStyle : common;
-        
-        if(lines.Count > 0 && SelectedRegion.Team == GameManager.main.ownTeam)
-            foreach (var line in lines)
-            {
-                Draw.LineDashStyle.type = DashType.Basic;
-                Draw.LineDashStyle.offset = Time.time * lineStyle.offsetSpeed;
-                Draw.LineDashStyle.size = lineStyle.dashSize;
-                Draw.LineDashStyle.spacing = lineStyle.spaceSize;
-                Draw.LineEndCaps = LineEndCap.Square;
-                Draw.LineDashed(line.Value, line.Key, lineStyle.thickness, lineStyle.color);
-            }
-    }
-    
-    void OnEnable()
-    {
-        RenderPipelineManager.endCameraRendering += RenderPipelineManager_endCameraRendering;
-    }
-    void OnDisable()
-    {
-        RenderPipelineManager.endCameraRendering -= RenderPipelineManager_endCameraRendering;
-    }
-    private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext context, Camera camera)
-    {
-        OnPostRender();
-    }
-    
-    Dictionary<Vector3, Vector3> RecalculateLines()
-    {
-        Dictionary<Vector3, Vector3> lines = new Dictionary<Vector3, Vector3>();
-
-        if (SelectedRegion && SelectedRegion.Team == GameManager.main.ownTeam)
-        {
-            if (EndRegion)
-            {
-                Vector3 lineDirection = (EndRegion.transform.position - SelectedRegion.transform.position).normalized * linePadding;
-                lines.Add(SelectedRegion.transform.position + lineDirection, EndRegion.transform.position - lineDirection);
-            }
-            else
-            {
-                foreach (var n in SelectedRegion.neighbours.Keys)
-                {
-                    Vector3 lineDirection = (SelectedRegion.transform.position - n.transform.position).normalized * linePadding;
-                    lines.Add(n.transform.position + lineDirection, SelectedRegion.transform.position - lineDirection);
-                }   
-            }
-        }
-        
-        return lines;
-    }
- 
-    #endregion
 }

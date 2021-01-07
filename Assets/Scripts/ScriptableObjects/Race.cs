@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(menuName = "Race"), Serializable]
 public class Race : ScriptableObject
 {
     public string header;
+    public Sprite icon;
     public Color regionColor;
-    public Color counterColor;
     public List<Ability> abilities = new List<Ability>();
 
     public int regionMaxLevel = 4;
