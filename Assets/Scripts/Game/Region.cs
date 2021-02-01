@@ -2,180 +2,144 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine.UI;
 
 public class Region : SerializedMonoBehaviour
 {
-    [ShowInInspector, PropertyOrder(-2)]
-    public Team Team
-    {
-        get { return _team; }
-        set
-        {
-            _team = value;
-
-            Race = _team ? _team.race : GameManager.main.neutral;
-            _material.color = _team ? _team.regionColor : GameManager.main.neutral.regionColor;
-            //_unitsCounter.SetColor(_team ? _team.counterColor : GameManager.main.neutral.counterColor);
-
-            if (_gameHandler.SelectedRegion == this)
-               _gameHandler.RecalculateUpgradeButton();
-            
-        }
-    }
-    private Team _team;
-
-    [ShowInInspector, PropertyOrder(-1)]
-    public Race Race
+    public int id;
+    
+    [SerializeField] 
+    private float maxUnits = 20;
+    [SerializeField]
+    private float unitsGrowSpeed = 0.3f;
+    [SerializeField]
+    private float currentUnits = 0;
+    [SerializeField]
+    private int _units;
+    [ShowInInspector]
+    public int Units
     {
         get
         {
-            return race;
+            return _units;
         }
         set
         {
-            race = value; 
-            Level = _level;
-        }
-    }
-    public Race race;
-    
-    public int RecalculateUnits()
-    {
-        if (_unitsCurrent < unitsMax)
-        {
-            _unitsCurrent = Mathf.Clamp(_unitsCurrent + Time.deltaTime * unitsGrowSpeed, 0, unitsMax);
-        }
-        else if (_unitsCurrent > unitsMax)
-        {
-            _unitsCurrent = Mathf.Clamp(_unitsCurrent - Time.deltaTime * 0.6f, unitsMax,
-                float.PositiveInfinity);
-        }
-
-        Units = Mathf.FloorToInt(_unitsCurrent);
-        return Units;
-    }
-    [ShowInInspector, PropertyOrder(-1), PropertySpace(15)]
-    public int Units
-    {
-        get { return _units; }
-        set
-        {
-            if (value != _units)
+            if (value == 0 && cellType == CellType.Water)
             {
-
-                _unitsCounter.SetText(value.ToString());
-                _unitsCurrent = value + (_unitsCurrent - Mathf.Floor(_unitsCurrent));
+                kingdom = null;
+                _counter.SetActive(false);
             }
-
+            else
+            {
+                _counter.SetActive(true);
+            }
+            _counterText.text = value.ToString();
             _units = value;
         }
     }
-    public int unitsMax = 10;
-    public float unitsGrowSpeed;
-    private int _units;
-    private float _unitsCurrent;
     
-    [ShowInInspector, PropertySpace(15)]
-    public int Level
+    private Kingdom _kingdom;
+    [ShowInInspector] public Kingdom kingdom
     {
         get
         {
-            return _level;
+            return _kingdom;
         }
         set
         {
-            if (cellType == CellType.Land)
+            if(value != kingdom)
             {
-                int i = Mathf.Clamp(value, 1, Race.regionMaxLevel);
-                unitsMax = Race.regionUpgradeMaxUnits[i - 1];
-                unitsGrowSpeed = Race.regionUpgradeUnitsGrowSpeed[i - 1];
-                DefenceCoefficient = Race.regionUpgradeDefenceCoefficient[i - 1];
-                _level = i;
-                
-                if (_gameHandler.SelectedRegion == this)
-                    _gameHandler.RecalculateUpgradeButton();
+                if (value != null)
+                {
+                    material.SetColor("_Color", value.color);
+                    _counterText.color = value.color;
+                }
+                else
+                {
+                    if (cellType == CellType.Water)
+                    {
+                        material.SetColor("_Color", waterColor);
+                    }
+                }
+                _kingdom = value;
             }
         }
     }
-    public int _level = 1;
-    public int GetUpgradePrice()
-    {
-        int price;
-        if (Level != race.regionMaxLevel)
-        {
-            price = race.regionUpgradePrice[Level];
-        }
-        else
-        {
-            price = -1;
-        }
 
-        return price;
-    }
-    
+    private bool _isCapital = false;
     [ShowInInspector]
-    public float DefenceCoefficient {get; set;} = 0.1f;
-    
-    #region RarelyUsedVariables
-    
-    [PropertyOrder(1), PropertySpace(15)]
-    public CellType cellType;
-    
+    public bool IsCapital
+    {
+        get
+        {
+            return _isCapital;
+        }
+        set
+        {
+            if(_isCapital != value)
+            {
+                _isCapital = value;
+
+                if (_isCapital)
+                {
+                    Instantiate(GameCore.main.capitalMarkPrefab, transform.position, Quaternion.Euler(270 + 180, 0, -90), transform);
+                }
+                else
+                {
+                    DestroyImmediate(transform.GetChild(1).gameObject);
+                }
+            }
+        }
+    }
+
     [PropertyOrder(2), DictionaryDrawerSettings(KeyLabel = "Region", ValueLabel = "isSeparated")]
-    public Dictionary<Region, bool> neighbours;
-
-    private GameManager _gameManager;
-    private GameHandler _gameHandler;
-    private UnitsCounter _unitsCounter;
-    private Material _material;
-
-    #endregion
-
-    void Start()
+    public Region[] neighbours;
+    public CellType cellType;
+    public Color waterColor;
+    
+    public Material material;
+    private TextMeshPro _counterText;
+    public GameObject _counter;
+    
+    private void Awake()
     {
-        _material = GetComponent<MeshRenderer>().material;
-        _unitsCounter.SetText(Units.ToString());
-        _gameManager = GameManager.main;
-        _gameHandler = GameHandler.main;
+        material = GetComponent<MeshRenderer>().material;
+        SpawnCounter();
+    }
 
-        if (cellType == CellType.Land)
+    public void Recalculate()
+    {
+        if (cellType == CellType.Land && kingdom != null) 
         {
-            Level = _level;
-            Units = race.regionUpgradeMaxUnits[Level - 1];
-        }
-        else
-        {
-            DefenceCoefficient = 0;
-            unitsGrowSpeed = 0;
-            unitsMax = int.MaxValue;
+            if (Units < maxUnits)
+            {
+                currentUnits += unitsGrowSpeed * Time.deltaTime;
+                if (currentUnits > 1)
+                {
+                    currentUnits--;
+                    Units++;
+                }   
+            }
+            else
+            {
+                currentUnits = 0;
+            }
         }
     }
 
-    #region Utils
-    
-    IEnumerator Colorize(Team newTeam, float time)
-    {
-        float t = 0;
-
-        while (t < time)
-        {
-            t += Time.deltaTime;
-            _material.color = Color.Lerp(_material.color, newTeam.regionColor, time);
-            yield return null;
-        }
-        _material.color = newTeam.regionColor;
-    }
-    
     [ContextMenu("SetNeighbours")]
     public void RecalculateNeighbours()
     {
-        List<Transform> regionsTransforms = _gameManager.regions.Select(p => p.gameObject.transform).ToList(); 
+        List<Transform> regionsTransforms = FindObjectsOfType<Region>().Select(p => p.transform).ToList(); 
         regionsTransforms.Remove(transform); //Transform всех регионов, кроме этого
 
-        neighbours = new Dictionary<Region, bool>();
+        List<Region> neighboursList = new List<Region>();
         Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
         Vector3[] ownVertices = mesh.vertices.Select(p => new Vector3(p.x, 0, -p.y) * transform.localScale.x + transform.localPosition).ToArray();
 
@@ -196,20 +160,53 @@ public class Region : SerializedMonoBehaviour
             if (distance < 0.00001f)
             {
                 Region neighbourRegion = n.GetComponent<Region>();
-                neighbours.Add(neighbourRegion, false);
+                neighboursList.Add(neighbourRegion);
             }
+        }
+
+        neighbours = neighboursList.ToArray();
+    }
+
+    [PropertyOrder(3)]
+    public GameObject counterPrefab;
+    [ContextMenu("SpawnCounter")]
+    public void SpawnCounter()
+    {
+        _counter = Instantiate(counterPrefab, transform.position, Quaternion.Euler(270 + 180, 0, -90), transform);
+        _counterText = _counter.transform.GetChild(0).GetComponent<TextMeshPro>();
+        _counterText.text = Units.ToString();
+        
+        if (Units == 0 && cellType == CellType.Water)
+        {
+            _counter.SetActive(false);
+        }
+        else
+        {
+            _counter.SetActive(true);
         }
     }
 
-    public void SetCounter(UnitsCounter counter)
+    public string ToStringFull()
     {
-        _unitsCounter = counter;
-        counter.mode = cellType == CellType.Land ? CounterMode.RegionLand : CounterMode.RegionWater;
+        if (kingdom != null)
+        {
+            return kingdom.id + ":" + Units;
+        }
+        else
+        {
+            return "#" + ":" + Units;
+        }
     }
 
-    public bool IsNeighbour(Region n)
+    [ContextMenu("DeleteCounter")]
+    public void DeleteCounters()
     {
-        return neighbours.ContainsKey(n);
+        DestroyImmediate(transform.GetChild(0).gameObject);
     }
-    #endregion
+    
+    public enum CellType
+    {
+        Land,
+        Water
+    }
 }

@@ -22,6 +22,5 @@ Material:
     m_Floats:
     - _ZOffsetFactor: 0
     - _ZOffsetUnits: 0
-    - _ZTest: 4
+    - _ZTest: 0
     m_Colors: []
-  m_BuildTextureStacks: []

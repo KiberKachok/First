@@ -8,7 +8,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Water
-  m_Shader: {fileID: -6465566751694194690, guid: dfe0558d2a34a1d47b47950b456408b4, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: dfe0558d2a34a1d47b47950b456408b4,
+    type: 3}
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
@@ -203,6 +204,7 @@ Material:
     - _Surface: 0
     - _UVSec: 0
     - _ZWrite: 1
+    - isSelected: 0
     m_Colors:
     - Color_435829E0: {r: 0.3773585, g: 0.3773585, b: 0.3773585, a: 0}
     - Color_4398BFA1: {r: 1, g: 0.7052167, b: 0, a: 1}
@@ -210,13 +212,12 @@ Material:
     - _BASE_COLOR: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 0.13665895, g: 0.48391894, b: 0.7830189, a: 1}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
-    - _Color: {r: 0, g: 0.53780746, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.5372548, b: 1, a: 1}
     - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _EMISSION_COLOR: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SPECULAR_COLOR: {r: 1, g: 1, b: 1, a: 0}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
-  m_BuildTextureStacks: []
 --- !u!114 &2101391717175796080
 MonoBehaviour:
   m_ObjectHideFlags: 11

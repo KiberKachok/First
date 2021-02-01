@@ -21,6 +21,7 @@ namespace Photon.Realtime
     using System.Collections;
     using System.Collections.Generic;
     using ExitGames.Client.Photon;
+    using System.Linq;
 
     #if SUPPORTED_UNITY
     using UnityEngine;
@@ -41,7 +42,12 @@ namespace Photon.Realtime
     {
         public string GetHash()
         {
-            return NickName.Split('_')[0];
+            return NickName.Split('-')[0];
+        }
+        
+        public string GetName()
+        {
+            return NickName.Split('-')[1];
         }
         
         /// <summary>

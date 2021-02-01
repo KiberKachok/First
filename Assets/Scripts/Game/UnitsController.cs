@@ -1,74 +1,73 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
 public class UnitsController : MonoBehaviour
 {
+    private int _units;
     public int Units
     {
         get
         {
-            return units;
+            return _units;
         }
         set
         {
-            units = value;
-            _unitsCounter.SetText(Units.ToString());
+            _units = value;
         }
     }
-    private int units;
-    
-    public Region from;  
+    public Kingdom kingdom;
+    public Region from;
     public Region to;
+    public float speed = 0.6f;
 
-    public Team team;
-    public float speed = 5;
-
-    private UnitsCounter _unitsCounter;
-    
-    void Update()
+    private void Start()
     {
-        if(transform.position != to.transform.position)
+        if(to.cellType == Region.CellType.Land)
         {
-            transform.position = Vector3.MoveTowards(transform.position, to.transform.position, speed * Time.deltaTime);
+            speed = 0.3f;
         }
         else
         {
-            OnGetDestination();
+            speed = 0.44f;
         }
     }
 
-    public void OnGetDestination()
+    private void Update()
     {
-        float defenceCoefficient = to.DefenceCoefficient;
-            
-        if (team == to.Team)
+        if (transform.position != to.transform.position)
         {
-            to.Units += units;
+            transform.position = Vector3.MoveTowards(transform.position, to.transform.position,
+                speed * Time.deltaTime);
         }
         else
         {
-            if (units - to.Units * (1 + defenceCoefficient) > 0)
+            if (PhotonNetwork.IsMasterClient)
             {
-                to.Units = Mathf.FloorToInt(units - to.Units * (1 + defenceCoefficient));
-                to.Team = team;
+                if (to.kingdom == kingdom)
+                {
+                    to.Units += Units;
+                }
+                else
+                {
+                    to.Units -= Units;
+                    if (to.Units < 0)
+                    {
+                        to.Units = Mathf.Abs(to.Units);
+                        if (to.IsCapital)
+                        {
+                            to.IsCapital = false;
+                            Debug.Log(to.kingdom);
+                            GameCore.main.CaptureKingdom(to.kingdom, kingdom);
+                        }
+                        to.kingdom = kingdom;
+                    }
+                }
             }
-            else
-            {
-                to.Units -= Mathf.FloorToInt(units * (1 - defenceCoefficient));
-            }
+            GameCore.main.unitsControllers.Remove(this);
+            Destroy(gameObject);
         }
-            
-        Destroy(gameObject);
-    }
-
-    public void Init(Region from, Region to, int units)
-    {
-        _unitsCounter = GetComponent<UnitsCounter>();
-        this.from = from;
-        this.to = to;
-        this.Units = units;
-        team = from.Team;
     }
 }
