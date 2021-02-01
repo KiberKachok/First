@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Random = UnityEngine.Random;
-using IngameDebugConsole;
 
 public class Network : MonoBehaviourPunCallbacks
 {
@@ -44,9 +43,9 @@ public class Network : MonoBehaviourPunCallbacks
             PhotonNetwork.LocalPlayer.NickName = "#" + "-" + FantasyNameGenerator.GetRandomName();
             FindObjectOfType<GamePanel>().EditNickname();
         }
-
+        PhotonNetwork.GameVersion = Application.version;
         PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.MaxResendsBeforeDisconnect = 7;
+        PhotonNetwork.MaxResendsBeforeDisconnect = 10;
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -122,7 +121,6 @@ public class Network : MonoBehaviourPunCallbacks
         onRoomsUpdate.Invoke(rooms);
     }
 
-    [ConsoleMethod("SetNickname", "set nickname")]
     public static void SetNickname(string nickname)
     {
         PhotonNetwork.NickName = nickname;
