@@ -35,8 +35,9 @@ public class GamePanel : MonoBehaviourPunCallbacks
     public TMP_InputField nicknameInputField;
     public Button setNicknameButton;
 
-    private List<GameObject> _renderedRooms = new List<GameObject>();
-    private List<GameObject> _renderedPlayers = new List<GameObject>();
+    public GameObject openRoomsLabel;
+    public GameObject yourStartedRoomsLabel;
+    public GameObject otherStartedRoomsLabel;
 
     public Network _network;
 
@@ -138,22 +139,48 @@ public class GamePanel : MonoBehaviourPunCallbacks
 
     private void DrawRooms(List<RoomInfo> rooms)
     {
-        for (int i = 0; i < _renderedRooms.Count; i++)
+        List<RoomInfo> openRooms = rooms.Where(p => p.IsOpen && p.PlayerCount > 0 && !p.CustomProperties.ContainsKey("Hashes")).ToList();
+        List<RoomInfo> startedRooms = rooms.Where(p => p.IsOpen && p.PlayerCount > 0 && p.CustomProperties.ContainsKey("Hashes")).ToList();
+        List<RoomInfo> yourStartedRooms = startedRooms.Where(p => (p.CustomProperties["Hashes"] as string).Contains(PhotonNetwork.LocalPlayer.GetHash())).ToList();
+        List<RoomInfo> otherStartedRooms = startedRooms.Where(p => !(p.CustomProperties["Hashes"] as string).Contains(PhotonNetwork.LocalPlayer.GetHash())).ToList();
+
+        foreach (Transform child in roomScrollViewTransform)
         {
-            Destroy(_renderedRooms.ElementAt(0));
-            _renderedRooms.RemoveAt(0);
+            Destroy(child.gameObject);
         }
-        List<RoomInfo> openRooms = rooms.Where(p => p.IsOpen && p.PlayerCount > 0).ToList();
-        openRoomsText.text = "открытые комнаты: " + openRooms.Count;
-        for (int i = 0; i < openRooms.Count; i++)
+
+        if(yourStartedRooms.Count == 0 && openRooms.Count == 0)
         {
-            RoomInfo currentRoom = openRooms.ElementAt(i);
-            GameObject roomObject = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
-            roomObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text =
-                currentRoom.CustomProperties["Nicknames"] as string;
-            roomObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = currentRoom.PlayerCount + "/∞";
-            roomObject.GetComponent<Button>().onClick.AddListener(delegate { _network.JoinRoom(currentRoom.Name); });
-            _renderedRooms.Add(roomObject);
+            GameObject roomsLabel = Instantiate(openRoomsLabel, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+            roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "открытые комнаты: " + openRooms.Count;
+        }
+
+        if(yourStartedRooms.Count > 0)
+        {
+            GameObject roomsLabel = Instantiate(yourStartedRoomsLabel, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+            roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "ваши комнаты: " + yourStartedRooms.Count;
+
+            foreach(RoomInfo roomInfo in yourStartedRooms)
+            {
+                GameObject roomObject = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+                roomObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = roomInfo.CustomProperties["Nicknames"] as string;
+                roomObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = roomInfo.PlayerCount + "/∞";
+                roomObject.GetComponent<Button>().onClick.AddListener(delegate { _network.JoinRoom(roomInfo.Name); });
+            }
+        }
+
+        if (openRooms.Count > 0)
+        {
+            GameObject roomsLabel = Instantiate(openRoomsLabel, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+            roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "открытые комнаты: " + openRooms.Count;
+
+            foreach (RoomInfo roomInfo in openRooms)
+            {
+                GameObject roomObject = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+                roomObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = roomInfo.CustomProperties["Nicknames"] as string;
+                roomObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = roomInfo.PlayerCount + "/∞";
+                roomObject.GetComponent<Button>().onClick.AddListener(delegate { _network.JoinRoom(roomInfo.Name); });
+            }
         }
     }
 

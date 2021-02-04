@@ -11,7 +11,7 @@ using System.Linq;
 
 public class Chat : MonoBehaviourPunCallbacks
 {
-    public Player targetPlayer;
+    public string targetHash = "None";
     public Message[] ableMessages;
     public RectTransform sender;
     public Vector3 senderPadding;
@@ -21,7 +21,7 @@ public class Chat : MonoBehaviourPunCallbacks
 
     public GameObject mutePrefab;
     public GameObject muteObject;
-    public List<Player> mutedPlayers = new List<Player>();
+    public List<string> mutedPlayers = new List<string>();
     
     private GUIController _guiController;
     
@@ -35,16 +35,16 @@ public class Chat : MonoBehaviourPunCallbacks
         BuildSender();
     }
 
-    public void OnTap(Player p)
+    public void OnTap(string hash)
     {
-        if (targetPlayer == null)
+        if (targetHash == "None")
         {
-            if (PhotonNetwork.PlayerList.Where(k => k.GetHash() == p.GetHash()).Count() > 0)
+            if (PhotonNetwork.PlayerList.Select(p => p.GetHash()).Contains(hash))
             {
-                Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == p.GetHash()).ElementAt(0);
+                Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == hash).ElementAt(0);
                 Debug.Log("Установлен получатель " + player.GetName());
-                targetPlayer = player;
-                ShowSender(player);
+                targetHash = hash;
+                ShowSender(hash);
             }
         }
         else
@@ -53,16 +53,16 @@ public class Chat : MonoBehaviourPunCallbacks
         }
     }
     
-    public void ShowSender(Player p)
+    public void ShowSender(string hash)
     {
         sender.gameObject.SetActive(true);
-        sender.transform.position = _guiController.avatars[p].transform.position - senderPadding;
+        sender.transform.position = _guiController.avatars[hash].transform.position - senderPadding;
     }
 
     public void HideSender()
     {
         sender.gameObject.SetActive(false);
-        targetPlayer = null;
+        targetHash = "None";
     }
 
     public bool isSenderOpened()
@@ -97,14 +97,14 @@ public class Chat : MonoBehaviourPunCallbacks
 
     public void UpdateMuteButton()
     {
-        if (mutedPlayers.Contains(targetPlayer))
+        if (mutedPlayers.Contains(targetHash))
         {
-            mutedPlayers.Remove(targetPlayer);
+            mutedPlayers.Remove(targetHash);
             muteObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Заглушить";
         }
         else
         {
-            mutedPlayers.Add(targetPlayer);
+            mutedPlayers.Add(targetHash);
             muteObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Разглушить";
         }
     }
@@ -113,8 +113,9 @@ public class Chat : MonoBehaviourPunCallbacks
     {
         string message = msg.text;
         message = message.Replace("{sender}", PhotonNetwork.LocalPlayer.GetName());
-        Debug.Log("Отправлено сообщение" + targetPlayer);
-        photonView.RPC("OnTakeMessage", targetPlayer, PhotonNetwork.LocalPlayer, message);
+        Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == targetHash).ElementAt(0);
+        Debug.Log("Отправлено сообщение" + player);
+        photonView.RPC("OnTakeMessage", player, PhotonNetwork.LocalPlayer, message);
         HideSender();
     }
 
@@ -122,7 +123,7 @@ public class Chat : MonoBehaviourPunCallbacks
     public void OnTakeMessage(Player p, string message)
     {
         Debug.Log("Получено сообщение: «" + message + "»");
-        if (!mutedPlayers.Contains(p))
+        if (!mutedPlayers.Contains(p.GetHash()))
         {
             GameObject m = Instantiate(receivedMessagePrefab, Vector3.zero, Quaternion.identity, chatBox);
             m.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = message;

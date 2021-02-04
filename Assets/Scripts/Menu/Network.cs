@@ -58,10 +58,10 @@ public class Network : MonoBehaviourPunCallbacks
     public void CreateRoom()
     {
         Debug.Log("Created Room");
-        RoomOptions roomOptions = new RoomOptions {/*EmptyRoomTtl = 0*/};
+        RoomOptions roomOptions = new RoomOptions {PlayerTtl = 0, EmptyRoomTtl = 0};
         roomOptions.CustomRoomProperties = new Hashtable();
         roomOptions.CustomRoomProperties.Add("Nicknames", PhotonNetwork.LocalPlayer.GetName());
-        roomOptions.CustomRoomPropertiesForLobby = new [] { "Nicknames" };
+        roomOptions.CustomRoomPropertiesForLobby = new [] { "Nicknames", "Hashes"};
         PhotonNetwork.CreateRoom(Random.Range(100, 1000) + "-000", roomOptions);
     }
 
@@ -103,6 +103,19 @@ public class Network : MonoBehaviourPunCallbacks
         }
     }
 
+    public void SetRoomHashes()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            string hashes = string.Join("|", PhotonNetwork.PlayerList.Select(p => p.GetHash()));
+            string nicknames = PhotonNetwork.CurrentRoom.CustomProperties["Nicknames"] as string;
+            Hashtable data = new Hashtable();
+            data.Add("Nicknames", nicknames);
+            data.Add("Hashes", hashes);
+            PhotonNetwork.CurrentRoom.SetCustomProperties(data);
+        }
+    }
+
     public void LeaveRoom()
     {
         PhotonNetwork.LeaveRoom();
@@ -110,7 +123,8 @@ public class Network : MonoBehaviourPunCallbacks
 
     public void LoadLevel(string sceneName)
     {
-        PhotonNetwork.CurrentRoom.IsOpen = false;
+        //PhotonNetwork.CurrentRoom.IsOpen = false;
+        SetRoomHashes();
         PhotonNetwork.LoadLevel(sceneName);
     }
 

@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -20,6 +21,9 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
     public Region[] lands;
     public Region[] waters;
     public List<UnitsController> unitsControllers = new List<UnitsController>();
+    public static string ownHash;
+    public string kingdomsData = "None";
+    public bool isCamerAligned = false;
 
     [ShowInInspector]
     public Region SelectedRegion
@@ -84,35 +88,109 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
         gameMode = PhotonNetwork.InRoom ? GameMode.Online : GameMode.Offline;
         main = this;
     }
-    
+
+
     void Start()
     {
-        Player[] _players = PhotonNetwork.PlayerList;
-        List<Kingdom> _kingdoms = new List<Kingdom>();
-        List<Region> _regions = new List<Region>();
-        List<Region> _mixedRegions = lands.OrderBy(a => Guid.NewGuid()).ToList();
-        for (int i = 0; i < _players.Length; i++)
-        {
-            Kingdom k = new Kingdom(i, _players[i].GetName(), palette.GetColor(i));
-            Region region = _mixedRegions[i % _mixedRegions.Count];
-            _kingdoms.Add(k);
-            _regions.Add(region);
-            playersKingdoms.Add(_players[i].GetHash(), k);
-            if (_players[i].GetHash() == PhotonNetwork.LocalPlayer.GetHash())
-            {
-                ownKingdom = k;
-            }
-        }
-        kingdoms = _kingdoms.ToArray();
+        ownHash = PhotonNetwork.LocalPlayer.GetHash();
+
         if (PhotonNetwork.IsMasterClient)
         {
-            for(int i = 0; i < kingdoms.Length; i++)
+            Player[] _players = PhotonNetwork.PlayerList;
+            List<Kingdom> _kingdoms = new List<Kingdom>();
+            List<Region> _regions = new List<Region>();
+            List<Region> _mixedRegions = lands.OrderBy(a => Guid.NewGuid()).ToList();
+
+            int kingdomsCount = _players.Length;
+            int[] ids = new int[kingdomsCount];
+            string[] names = new string[kingdomsCount];
+            string[] hashes = new string[kingdomsCount];
+
+            for (int i = 0; i < kingdomsCount; i++)
+            {
+                ids[i] = i;
+                names[i] = _players[i].GetName();
+                hashes[i] = _players[i].GetHash();
+
+                Kingdom k = new Kingdom(i, _players[i].GetName(), _players[i].GetHash(), palette.GetColor(i));
+                Region region = _mixedRegions[i % _mixedRegions.Count];
+                _kingdoms.Add(k);
+                _regions.Add(region);
+                playersKingdoms.Add(_players[i].GetHash(), k);
+                if (k.hash == PhotonNetwork.LocalPlayer.GetHash())
+                {
+                    ownKingdom = k;
+                }
+            }
+            kingdoms = _kingdoms.ToArray();
+
+            for (int i = 0; i < kingdoms.Length; i++)
             {
                 _regions[i].kingdom = kingdoms[i];
                 _regions[i].IsCapital = true;
             }
+
+            string idsStr = string.Join(":", ids);
+            string namesStr = string.Join(":", names);
+            string hashesStr = string.Join(":", hashes);
+            string kingdomsDataStr = kingdomsCount.ToString() + "|" + idsStr + "|" + namesStr + "|" + hashesStr;
+            
+            photonView.RPC("SetKingdomsData", RpcTarget.AllBuffered, kingdomsDataStr);
             photonView.RPC("SpawnKingdoms", RpcTarget.All, string.Join("-", _regions.Select(p => p.id)), string.Join("-", kingdoms.Select(p => p.id)));
         }
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("SetKingdomsData", newPlayer, kingdomsData);
+        }
+    }
+
+    [PunRPC]
+    public void SetKingdomsData(string kData)
+    {
+        if (kingdomsData == "None")
+        {
+            kingdomsData = kData;
+            SetKingdoms(kingdomsData);
+        }
+    }
+
+    public void SetKingdoms(string kingdomsData)
+    {
+        // id:id:id:id|name:name:name:name|hash:hash:hash:hash
+        Debug.Log("Королевства получены");
+        string[] data = kingdomsData.Split('|').ToArray();
+        int kCount = Convert.ToInt32(data[0]);
+        string idsStr = data[1];
+        string namesStr = data[2];
+        string hashesStr = data[3];
+
+        List<Kingdom> _kingdoms = new List<Kingdom>();
+
+        int kingdomsCount = kCount;
+        int[] ids = idsStr.Split(':').Select(p => Convert.ToInt32(p)).ToArray();
+        string[] names = namesStr.Split(':').ToArray();
+        string[] hashes = hashesStr.Split(':').ToArray();
+
+        for(int i = 0; i < kingdomsCount; i++)
+        {
+            int id = ids[i];
+            string name = names[i];
+            string hash = hashes[i];
+
+            Kingdom k = new Kingdom(id, name, hash, palette.GetColor(id));
+            _kingdoms.Add(k);
+
+            if (hash == PhotonNetwork.LocalPlayer.GetHash())
+            {
+                ownKingdom = k;
+            }
+        }
+
+        kingdoms = _kingdoms.ToArray();
         _guiController.BuildAvatars(kingdoms);
     }
 
@@ -122,11 +200,26 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
         Region[] _regions = regData.Split('-').Select(p => Convert.ToInt32(p)).Select(p => regions[p]).ToArray();
         Kingdom[] _kingdoms = kingdomData.Split('-').Select(p => Convert.ToInt32(p)).Select(p => kingdoms[p]).ToArray();
 
-        for(int i = 0; i < _regions.Length; i++)
+        for (int i = 0; i < _regions.Length; i++)
         {
-            if (kingdoms[i] == ownKingdom)
+            if (kingdoms[i].hash == ownKingdom.hash)
             {
                 Camera.main.transform.position = new Vector3(_regions[i].transform.position.x, Camera.main.transform.position.y, _regions[i].transform.position.z);
+            }
+        }
+    }
+
+    [ContextMenu("Align Camera")]
+    public void AlignCamera()
+    {
+        if(ownKingdom != null)
+        {
+            Region[] ownRegions = lands.Where(p => p.kingdom != null && p.kingdom.hash == ownKingdom.hash && p.IsCapital).ToArray();
+            if(ownRegions.Length > 0)
+            {
+                Region target = ownRegions[0];
+                Camera.main.transform.position = new Vector3(target.transform.position.x, Camera.main.transform.position.y, target.transform.position.z);
+
             }
         }
     }
@@ -158,7 +251,7 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Update()
     {
-        if(_selectedRegion && _selectedRegion.kingdom != ownKingdom)
+        if (_selectedRegion && _selectedRegion.kingdom != null && _selectedRegion.kingdom.hash != ownHash)
         {
             SelectedRegion = null;
         }
@@ -209,6 +302,12 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
                 }
                 regions[i].IsCapital = capitals.Contains(regions[i].id);
             }
+
+            if (!isCamerAligned) //Выравнивание камеры после переподключения
+            {
+                AlignCamera();
+                isCamerAligned = true;
+            }
         }
     }
 
@@ -249,7 +348,7 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
             }
             else
             {
-                if (rg.kingdom == ownKingdom)
+                if (rg.kingdom != null && rg.kingdom.hash == ownHash)
                 {
                     SelectedRegion = rg;
                 }

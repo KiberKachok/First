@@ -46,7 +46,7 @@ public class UnitsController : MonoBehaviour
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                if (to.kingdom == kingdom)
+                if (to.kingdom != null && to.kingdom.hash == kingdom.hash)
                 {
                     to.Units += Units;
                 }
