@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class Palette
+[Serializable, CreateAssetMenu]
+public class Palette : ScriptableObject
 {
     public Color[] colors;
 

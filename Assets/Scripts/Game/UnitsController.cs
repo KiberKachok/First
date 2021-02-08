@@ -22,6 +22,7 @@ public class UnitsController : MonoBehaviour
     public Region from;
     public Region to;
     public float speed = 0.6f;
+    public float percentsToDest = 0f;
 
     private void Start()
     {
@@ -37,6 +38,7 @@ public class UnitsController : MonoBehaviour
 
     private void Update()
     {
+        percentsToDest = Vector3.Distance(transform.position, from.transform.position) / Vector3.Distance(from.transform.position, to.transform.position);
         if (transform.position != to.transform.position)
         {
             transform.position = Vector3.MoveTowards(transform.position, to.transform.position,
@@ -44,7 +46,7 @@ public class UnitsController : MonoBehaviour
         }
         else
         {
-            if (PhotonNetwork.IsMasterClient)
+            if (PhotonNetwork.IsMasterClient || GameCore.main.isImitatorMode)
             {
                 if (to.kingdom != null && to.kingdom.hash == kingdom.hash)
                 {

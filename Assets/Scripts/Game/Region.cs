@@ -18,7 +18,7 @@ public class Region : SerializedMonoBehaviour
     [SerializeField]
     private float unitsGrowSpeed = 0.3f;
     [SerializeField]
-    private float currentUnits = 0;
+    public float currentUnits = 0;
     [SerializeField]
     private int _units;
     [ShowInInspector]

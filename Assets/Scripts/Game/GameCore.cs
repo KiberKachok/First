@@ -8,6 +8,7 @@ using Photon.Realtime;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using System.Globalization;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -44,7 +45,7 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
     private Region _selectedRegion;
-    
+
     [ShowInInspector]
     public Region EndRegion
     {
@@ -79,7 +80,11 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
     public static GameCore main;
 
     public GameObject capitalMarkPrefab;
-    
+
+    public bool isImitatorMode = false;
+    public int botsCount = 10;
+    public Region[] botStartRegions;
+
     void Awake()
     {
         _guiController = FindObjectOfType<GUIController>();
@@ -92,59 +97,164 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
 
     void Start()
     {
+        bool isActivation = !Convert.ToBoolean(PlayerPrefs.GetInt("isActivation"));
+
         ownHash = PhotonNetwork.LocalPlayer.GetHash();
 
-        if (PhotonNetwork.IsMasterClient)
+        if (!isImitatorMode)
         {
-            Player[] _players = PhotonNetwork.PlayerList;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                Player[] _players = PhotonNetwork.PlayerList;
+                List<Kingdom> _kingdoms = new List<Kingdom>();
+                List<Region> _regions = new List<Region>();
+                List<Region> _mixedRegions = lands.OrderBy(a => Guid.NewGuid()).ToList();
+
+                int kingdomsCount = _players.Length;
+                int[] ids = new int[kingdomsCount];
+                string[] names = new string[kingdomsCount];
+                string[] hashes = new string[kingdomsCount];
+
+                for (int i = 0; i < kingdomsCount; i++)
+                {
+                    ids[i] = i;
+                    names[i] = _players[i].GetName();
+                    hashes[i] = _players[i].GetHash();
+
+                    Kingdom k = new Kingdom(i, _players[i].GetName(), _players[i].GetHash(), palette.GetColor(i));
+                    Region region = _mixedRegions[i % _mixedRegions.Count];
+                    _kingdoms.Add(k);
+                    _regions.Add(region);
+                    playersKingdoms.Add(_players[i].GetHash(), k);
+                    if (k.hash == PhotonNetwork.LocalPlayer.GetHash())
+                    {
+                        ownKingdom = k;
+                    }
+                }
+                kingdoms = _kingdoms.ToArray();
+
+                for (int i = 0; i < kingdoms.Length; i++)
+                {
+                    _regions[i].kingdom = kingdoms[i];
+                    _regions[i].IsCapital = true;
+                }
+
+                string idsStr = string.Join(":", ids);
+                string namesStr = string.Join(":", names);
+                string hashesStr = string.Join(":", hashes);
+                string kingdomsDataStr = kingdomsCount.ToString() + "|" + idsStr + "|" + namesStr + "|" + hashesStr;
+
+                photonView.RPC("SetKingdomsData", RpcTarget.AllBuffered, kingdomsDataStr);
+                photonView.RPC("SpawnKingdoms", RpcTarget.All, string.Join("-", _regions.Select(p => p.id)), string.Join("-", kingdoms.Select(p => p.id)));
+            }
+        }
+        else
+        {
             List<Kingdom> _kingdoms = new List<Kingdom>();
             List<Region> _regions = new List<Region>();
             List<Region> _mixedRegions = lands.OrderBy(a => Guid.NewGuid()).ToList();
-
-            int kingdomsCount = _players.Length;
-            int[] ids = new int[kingdomsCount];
-            string[] names = new string[kingdomsCount];
-            string[] hashes = new string[kingdomsCount];
+            int kingdomsCount = botsCount;
 
             for (int i = 0; i < kingdomsCount; i++)
             {
-                ids[i] = i;
-                names[i] = _players[i].GetName();
-                hashes[i] = _players[i].GetHash();
-
-                Kingdom k = new Kingdom(i, _players[i].GetName(), _players[i].GetHash(), palette.GetColor(i));
-                Region region = _mixedRegions[i % _mixedRegions.Count];
-                _kingdoms.Add(k);
-                _regions.Add(region);
-                playersKingdoms.Add(_players[i].GetHash(), k);
-                if (k.hash == PhotonNetwork.LocalPlayer.GetHash())
+                Kingdom k = new Kingdom(i, i.ToString(), i.ToString(), palette.GetColor(i));
+                Region mainRegion;
+                if (isActivation)
                 {
-                    ownKingdom = k;
+                    mainRegion = botStartRegions[i];
                 }
+                else
+                {
+                    mainRegion = _mixedRegions[i % _mixedRegions.Count];
+                }
+                _mixedRegions.Remove(mainRegion);
+
+                mainRegion.kingdom = k;
+                mainRegion.IsCapital = true;
+                mainRegion.Units = Random.Range(5, 16);
+                mainRegion.currentUnits = Random.Range(0f, 1f);
+
+                int provincesCount = Random.Range(0, 1);
+                List<Region> _mixedNeighbours = mainRegion.neighbours.OrderBy(a => Guid.NewGuid()).ToList();
+
+                for (int j = 0; j < provincesCount; j++)
+                {
+                    Region targetRegion = _mixedNeighbours[j];
+                    if (targetRegion.kingdom == null && targetRegion.cellType == Region.CellType.Land)
+                    {
+                        _mixedRegions.Remove(targetRegion);
+                        targetRegion.kingdom = k;
+                        targetRegion.Units = Random.Range(2, 10);
+                        targetRegion.currentUnits = Random.Range(0f, 1f);
+                    }
+                }
+
+                _kingdoms.Add(k);
             }
+
             kingdoms = _kingdoms.ToArray();
+            StartImitator();
+        }
+    }
 
-            for (int i = 0; i < kingdoms.Length; i++)
-            {
-                _regions[i].kingdom = kingdoms[i];
-                _regions[i].IsCapital = true;
-            }
-
-            string idsStr = string.Join(":", ids);
-            string namesStr = string.Join(":", names);
-            string hashesStr = string.Join(":", hashes);
-            string kingdomsDataStr = kingdomsCount.ToString() + "|" + idsStr + "|" + namesStr + "|" + hashesStr;
-            
-            photonView.RPC("SetKingdomsData", RpcTarget.AllBuffered, kingdomsDataStr);
-            photonView.RPC("SpawnKingdoms", RpcTarget.All, string.Join("-", _regions.Select(p => p.id)), string.Join("-", kingdoms.Select(p => p.id)));
+    public void StartImitator()
+    {
+        for (int i = 0; i < kingdoms.Length; i++)
+        {
+            Imitator imitator = gameObject.AddComponent<Imitator>();
+            imitator.kingdom = kingdoms[i];
+            imitator.gameCore = this;
         }
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient && !isImitatorMode)
         {
             photonView.RPC("SetKingdomsData", newPlayer, kingdomsData);
+            SendUnitsData(newPlayer);
+        }
+    }
+
+    public void SendUnitsData(Player newPlayer)
+    {
+        //fromId:toId:kingdomId:units:percents|
+        if (unitsControllers.Count > 0)
+        {
+            string[] data = new string[unitsControllers.Count];
+            for (int i = 0; i < unitsControllers.Count; i++)
+            {
+                UnitsController u = unitsControllers.ElementAt(i);
+                data[i] = u.from.id + ":" + u.to.id + ":" + u.kingdom.id + ":" + u.Units + ":" + u.percentsToDest.ToString("F3", CultureInfo.InvariantCulture);
+            }
+            photonView.RPC("GetUnitsData", newPlayer, string.Join("|", data));
+        }
+    }
+
+    [PunRPC]
+    public void GetUnitsData(string dataStr)
+    {
+        string[] data = dataStr.Split('|').ToArray();
+        for (int i = 0; i < data.Length; i++)
+        {
+            string[] mdata = data[i].Split(':').ToArray();
+            Region from = regions[Convert.ToInt32(mdata[0])];
+            Region to = regions[Convert.ToInt32(mdata[1])];
+            Kingdom kingdom = kingdoms[Convert.ToInt32(mdata[2])];
+            int units = Convert.ToInt32(mdata[3]);
+            float percents = Convert.ToSingle(mdata[4], CultureInfo.InvariantCulture);
+            Vector3 startPos = (to.transform.position - from.transform.position) * percents + from.transform.position;
+
+            GameObject unitsObject = Instantiate(unitsPrefab, startPos, Quaternion.Euler(270 + 180, 0, -90));
+            TextMeshPro t = unitsObject.transform.GetChild(0).GetComponent<TextMeshPro>();
+            t.text = units.ToString();
+            t.color = kingdom.color;
+            UnitsController unitsController = unitsObject.GetComponent<UnitsController>();
+            unitsController.Units = units;
+            unitsController.from = from;
+            unitsController.to = to;
+            unitsController.kingdom = kingdom;
+            unitsControllers.Add(unitsController);
         }
     }
 
@@ -228,12 +338,11 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
     {
         for(int i = 0; i < regions.Length; i++)
         {
-            if(regions[i].kingdom == targetKingdom)
+            if(regions[i].kingdom != null && regions[i].kingdom.hash == targetKingdom.hash)
             {
                 regions[i].kingdom = kingdom;
             }
         }
-        regions.Where(p => p.kingdom != null).Where(p => p.kingdom.id == targetKingdom.id).Select(p => p.kingdom = kingdom);
         photonView.RPC("DestroyKingdomUnits", RpcTarget.All, targetKingdom.id);
     }
 
@@ -256,7 +365,7 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
             SelectedRegion = null;
         }
 
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient || isImitatorMode)
         {
             foreach (var region in regions)
             {
@@ -267,46 +376,49 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsWriting)
+        if (!isImitatorMode)
         {
-            List<string> capitals = new List<string>();
-            List<string> data = new List<string>();
-            foreach (var region in regions)
+            if (stream.IsWriting)
             {
-                if (region.IsCapital)
+                List<string> capitals = new List<string>();
+                List<string> data = new List<string>();
+                foreach (var region in regions)
                 {
-                    capitals.Add(region.id.ToString());
+                    if (region.IsCapital)
+                    {
+                        capitals.Add(region.id.ToString());
+                    }
+                    data.Add(region.ToStringFull());
                 }
-                data.Add(region.ToStringFull());
+                string message = string.Join("-", capitals) + "|" + string.Join("-", data);
+                stream.SendNext(message);
             }
-            string message = string.Join("-", capitals) + "|" + string.Join("-", data);
-            stream.SendNext(message);
-        }
-        else
-        {
-            string message = (string)stream.ReceiveNext();
-            string[] cdata = message.Split('|').ToArray();
-            int[] capitals = cdata[0].Split('-').Select(p => Convert.ToInt32(p)).ToArray();
-            string[] data = cdata[1].Split('-');
-            for (int i = 0; i < regions.Length; i++)
+            else
             {
-                string[] d = data[i].Split(':');
-                regions[i].Units = Convert.ToInt32(d[1]);
-                if (d[0] == "#")
+                string message = (string)stream.ReceiveNext();
+                string[] cdata = message.Split('|').ToArray();
+                int[] capitals = cdata[0].Split('-').Select(p => Convert.ToInt32(p)).ToArray();
+                string[] data = cdata[1].Split('-');
+                for (int i = 0; i < regions.Length; i++)
                 {
-                    regions[i].kingdom = null;
+                    string[] d = data[i].Split(':');
+                    regions[i].Units = Convert.ToInt32(d[1]);
+                    if (d[0] == "#")
+                    {
+                        regions[i].kingdom = null;
+                    }
+                    else
+                    {
+                        regions[i].kingdom = kingdoms[Convert.ToInt32(d[0])];
+                    }
+                    regions[i].IsCapital = capitals.Contains(regions[i].id);
                 }
-                else
-                {
-                    regions[i].kingdom = kingdoms[Convert.ToInt32(d[0])];
-                }
-                regions[i].IsCapital = capitals.Contains(regions[i].id);
-            }
 
-            if (!isCamerAligned) //Выравнивание камеры после переподключения
-            {
-                AlignCamera();
-                isCamerAligned = true;
+                if (!isCamerAligned) //Выравнивание камеры после переподключения
+                {
+                    AlignCamera();
+                    isCamerAligned = true;
+                }
             }
         }
     }
