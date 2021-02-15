@@ -511,7 +511,7 @@ MonoBehaviour:
   currentVersion: 
   newestVersion: 
   newestVersionCode: 0
-  currentVersionCode: 9
+  currentVersionCode: 10
   backgroundImage: {fileID: 1000305742}
   cameraHightPerTime:
     serializedVersion: 2
