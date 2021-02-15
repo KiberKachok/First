@@ -12,15 +12,19 @@ using System.Linq;
 public class Chat : MonoBehaviourPunCallbacks
 {
     public string targetHash = "None";
-    public Message[] ableMessages;
     public RectTransform sender;
+    public RectTransform avatarsRect;
     public Vector3 senderPadding;
     public GameObject messagePrefab;
     public GameObject receivedMessagePrefab;
     public Transform chatBox;
 
-    public GameObject mutePrefab;
-    public GameObject muteObject;
+    public GameObject leftArrow;
+    public GameObject rightArrow;
+    public int senderActivePageNumber = 0; //По индексу
+    public GameObject[] senderPages;
+    public Button[] muteButtons;
+
     public List<string> mutedPlayers = new List<string>();
     
     private GUIController _guiController;
@@ -32,7 +36,7 @@ public class Chat : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        BuildSender();
+
     }
 
     public void OnTap(string hash)
@@ -52,15 +56,53 @@ public class Chat : MonoBehaviourPunCallbacks
             HideSender();
         }
     }
+
+    //(-1 - влево) (1 - вправо)
+    public void SwitchPage(int direction)
+    {
+        senderActivePageNumber = Mathf.Clamp(senderActivePageNumber + direction, 0, senderPages.Length - 1);
+        UpdateSender();
+    }
+
+    public void UpdateSender()
+    {
+        foreach(GameObject page in senderPages)
+        {
+            page.SetActive(false);
+        }
+
+        senderPages[senderActivePageNumber].SetActive(true);
+
+        if (senderActivePageNumber == 0)
+        {
+            leftArrow.SetActive(false);
+        }
+        else
+        {
+            leftArrow.SetActive(true);
+        }
+
+        if (senderActivePageNumber == senderPages.Length - 1)
+        {
+            rightArrow.SetActive(false);
+        }
+        else
+        {
+            rightArrow.SetActive(true);
+        }
+    }
     
     public void ShowSender(string hash)
     {
+        senderActivePageNumber = 0;
+        UpdateSender();
         sender.gameObject.SetActive(true);
-        sender.transform.position = _guiController.avatars[hash].transform.position - senderPadding;
+        sender.anchoredPosition = new Vector2(_guiController.avatars[hash].GetComponent<RectTransform>().anchoredPosition.x, sender.anchoredPosition.y);
     }
 
     public void HideSender()
     {
+        senderActivePageNumber = 0;
         sender.gameObject.SetActive(false);
         targetHash = "None";
     }
@@ -70,48 +112,29 @@ public class Chat : MonoBehaviourPunCallbacks
         return sender.gameObject.activeSelf;
     }
 
-    public void BuildSender()
-    {
-        foreach (var message in ableMessages)
-        {
-            GameObject m = Instantiate(messagePrefab, Vector3.zero, Quaternion.identity, sender);
-            
-            if (message.icon != null)
-            {
-                m.transform.GetChild(1).GetComponent<Image>().sprite = message.icon;
-            }
-            else
-            {
-                m.transform.GetChild(1).gameObject.SetActive(false);
-                m.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(16, 0);
-            }
-
-            m.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = message.title;
-            m.GetComponent<Image>().color = message.color;
-            m.GetComponent<Button>().onClick.AddListener(delegate { SendMessage(message); });
-        }
-        muteObject = Instantiate(mutePrefab, Vector3.zero, Quaternion.identity, sender);
-        muteObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Заглушить";
-        muteObject.GetComponent<Button>().onClick.AddListener(delegate { UpdateMuteButton(); });
-    }
-
     public void UpdateMuteButton()
     {
         if (mutedPlayers.Contains(targetHash))
         {
             mutedPlayers.Remove(targetHash);
-            muteObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Заглушить";
+            foreach(Button button in muteButtons)
+            {
+                button.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Заглушить";
+            }
         }
         else
         {
             mutedPlayers.Add(targetHash);
-            muteObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Разглушить";
+            foreach (Button button in muteButtons)
+            {
+                button.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Разглушить";
+            }
         }
     }
 
-    public void SendMessage(Message msg)
+    public void SendChatMessage(string msg)
     {
-        string message = msg.text;
+        string message = msg;
         message = message.Replace("{sender}", PhotonNetwork.LocalPlayer.GetName());
         Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == targetHash).ElementAt(0);
         Debug.Log("Отправлено сообщение" + player);

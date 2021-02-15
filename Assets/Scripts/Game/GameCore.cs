@@ -122,7 +122,50 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
                     hashes[i] = _players[i].GetHash();
 
                     Kingdom k = new Kingdom(i, _players[i].GetName(), _players[i].GetHash(), palette.GetColor(i));
-                    Region region = _mixedRegions[i % _mixedRegions.Count];
+
+                    Region tmp = null;
+                    Region region = null;
+
+                    for (int j = 0; j < _mixedRegions.Count; j++)
+                    {
+                        tmp = _mixedRegions[j % _mixedRegions.Count];
+
+                        if (!_regions.Contains(tmp))
+                        {
+                            bool isNormal = true;
+
+                            foreach(Region rg in _regions)
+                            {
+                                if (rg.neighbours.Contains(tmp))
+                                {
+                                    isNormal = false;
+                                }
+                            }
+
+                            if (isNormal)
+                            {
+                                region = tmp;
+                            }
+                        }
+                    }
+
+                    if(region == null)
+                    {
+                        for (int j = 0; j < _mixedRegions.Count; j++)
+                        {
+                            tmp = _mixedRegions[j % _mixedRegions.Count];
+
+                            if (!_regions.Contains(tmp))
+                            {
+                                region = tmp;
+                                j = _mixedRegions.Count;
+                            }
+                        }
+                    }
+
+                    //Region region = _mixedRegions[i % _mixedRegions.Count];
+                    Debug.Log(region);
+
                     _kingdoms.Add(k);
                     _regions.Add(region);
                     playersKingdoms.Add(_players[i].GetHash(), k);
@@ -362,6 +405,7 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (_selectedRegion && _selectedRegion.kingdom != null && _selectedRegion.kingdom.hash != ownHash)
         {
+            EndRegion = null;
             SelectedRegion = null;
         }
 
@@ -478,9 +522,17 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
         if (PhotonNetwork.IsMasterClient)
         {
             int units = Mathf.Clamp(Mathf.RoundToInt(from.Units * percent), 0, from.Units);
-            from.Units -= units;
-            photonView.RPC("SpawnUnits", RpcTarget.All, fromId, toId, kingdom.id, units);
-            PhotonNetwork.SendAllOutgoingCommands();
+
+            if (units > 0
+                && from.kingdom != null
+                && from.kingdom.hash == kingdom.hash
+                && from.neighbours.Contains(to)
+                && regions.Where(p => p.IsCapital && p.kingdom != null && p.kingdom.hash == kingdom.hash).Count() > 0)
+            {
+                from.Units -= units;
+                photonView.RPC("SpawnUnits", RpcTarget.All, fromId, toId, kingdom.id, units);
+                PhotonNetwork.SendAllOutgoingCommands();
+            }
         }
         else
         {
@@ -495,8 +547,8 @@ public class GameCore : MonoBehaviourPunCallbacks, IPunObservable
         Region from = regions[fromId];
         Region to = regions[toId];
         Kingdom kingdom = kingdoms[kingdomId];
-
-        if (units > 0)
+        
+        if (units > 0 && from.neighbours.Contains(to))
         {
             GameObject unitsObject = Instantiate(unitsPrefab, from.transform.position, Quaternion.Euler(270 + 180, 0, -90));
             TextMeshPro t = unitsObject.transform.GetChild(0).GetComponent<TextMeshPro>();

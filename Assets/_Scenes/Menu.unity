@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -831,7 +831,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0.9999999, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -964,7 +964,8 @@ MonoBehaviour:
     type: 3}
   yourStartedRoomsLabel: {fileID: 977450658743550979, guid: 3b106fe55fc68d642abeee9084f95402,
     type: 3}
-  otherStartedRoomsLabel: {fileID: 0}
+  otherStartedRoomsLabel: {fileID: 4870444098117586138, guid: 16b54764a97312848adc82c0cf3a86a9,
+    type: 3}
   _network: {fileID: 1281259562}
 --- !u!1 &364582930
 GameObject:
@@ -1622,7 +1623,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.7490196}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.8352941}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2919,12 +2920,12 @@ MonoBehaviour:
   text: {fileID: 739773387}
   normalColor: {r: 1, g: 1, b: 1, a: 0.5803922}
   errorColor: {r: 1, g: 1, b: 1, a: 0.5803922}
-  showedStates: 00000000010000000200000003000000060000000600000007000000070000000800000009000000000000000a0000000c0000000c0000000f0000000f0000000f000000100000001100000013000000
+  showedStates: 000000000100000002000000060000000600000007000000070000000800000009000000000000000c0000000c0000000f0000000f0000000f0000001000000011000000130000000a000000
   errorStates: 12000000050000000b000000050000000b0000000d0000000e000000
-  hiddenStates: 04000000
+  hiddenStates: 0400000003000000
   warningStates: 0a00000008000000
   currentStateTime: 0
-  stateWarningTime: 1
+  stateWarningTime: 1.25
 --- !u!222 &1271693768
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3014,7 +3015,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1962564524}
   m_HandleRect: {fileID: 1962564523}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -3067,6 +3068,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1281259563}
   - component: {fileID: 1281259562}
+  - component: {fileID: 1281259564}
   m_Layer: 0
   m_Name: Network
   m_TagString: Untagged
@@ -3103,6 +3105,28 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1281259564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1281259561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  observableSearch: 2
+  Synchronization: 3
+  OwnershipTransfer: 0
+  ObservedComponents: []
+  viewIdField: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1355331215
 GameObject:
   m_ObjectHideFlags: 0
@@ -3701,7 +3725,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 233373658}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.9999999
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3814,7 +3838,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: v1.2.2 (5)
+  m_text: v1.2.6 (9)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3392bd8e680545e4e8badb15e18e31e3, type: 2}
   m_sharedMaterial: {fileID: 9051146799951610562, guid: 3392bd8e680545e4e8badb15e18e31e3,
@@ -9611,7 +9635,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3135147263924738301}
   m_HandleRect: {fileID: 3135147263924738300}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

@@ -16,6 +16,7 @@ public class Network : MonoBehaviourPunCallbacks
     public List<RoomInfo> rooms = new List<RoomInfo>();
     public UnityEventWrapper<List<RoomInfo>> onRoomsUpdate = new UnityEventWrapper<List<RoomInfo>>();
     public UnityEvent onRoomPlayersUpdate = new UnityEvent();
+    Dictionary<string, RoomInfo> cachedRooms = new Dictionary<string, RoomInfo>();
 
     [Serializable]
     public class UnityEventWrapper<T> : UnityEvent<T> { }
@@ -47,12 +48,36 @@ public class Network : MonoBehaviourPunCallbacks
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.MaxResendsBeforeDisconnect = 10;
         PhotonNetwork.ConnectUsingSettings();
+        StartCoroutine(UpdatePlayersPing());
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            Debug.Log(PhotonNetwork.GetPing());
+        }
+    }
+
+    IEnumerator UpdatePlayersPing()
+    {
+        while (true)
+        {
+            Hashtable PlayerCustomProps = new Hashtable();
+            PlayerCustomProps["Ping"] = PhotonNetwork.GetPing();
+            PhotonNetwork.LocalPlayer.SetCustomProperties(PlayerCustomProps);
+            yield return new WaitForSeconds(3);
+        }
     }
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Joined Lobby");
         PhotonNetwork.JoinLobby();
+    }
+
+    public override void OnJoinedLobby()
+    {
+        cachedRooms = new Dictionary<string, RoomInfo>();
     }
 
     public void CreateRoom()
@@ -67,6 +92,7 @@ public class Network : MonoBehaviourPunCallbacks
 
     public void JoinRoom(string roomName)
     {
+        Debug.Log(PhotonNetwork.NetworkClientState);
         PhotonNetwork.JoinRoom(roomName);
     }
 
@@ -75,6 +101,7 @@ public class Network : MonoBehaviourPunCallbacks
         onRoomPlayersUpdate.Invoke();
         UpdateRoomNicknames();
     }
+
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
@@ -124,13 +151,57 @@ public class Network : MonoBehaviourPunCallbacks
     public void LoadLevel(string sceneName)
     {
         //PhotonNetwork.CurrentRoom.IsOpen = false;
+
+        //if (PhotonNetwork.IsMasterClient)
+        //{
+        //    int minPing = int.MaxValue;
+        //    Player minPingPlayer = null;
+
+        //    foreach (Player player in PhotonNetwork.PlayerList)
+        //    {
+        //        int ping = Convert.ToInt32(player.CustomProperties["Ping"].ToString());
+        //        if (ping < minPing)
+        //        {
+        //            minPing = ping;
+        //            minPingPlayer = player;
+        //        }
+        //        Debug.Log(player.GetName() + " " + ping);
+        //    }
+
+        //    if (minPingPlayer != null)
+        //    {
+        //        photonView.RPC("StartGame", minPingPlayer);
+        //    }
+        //    else
+        //    {
+        //        StartGame();
+        //    }
+        //}
+
         SetRoomHashes();
         PhotonNetwork.LoadLevel(sceneName);
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        rooms = roomList;
+        foreach(RoomInfo info in roomList)
+        {
+            if (info.RemovedFromList)
+            {
+                cachedRooms.Remove(info.Name);
+            }
+
+            if (cachedRooms.ContainsKey(info.Name))
+            {
+                cachedRooms[info.Name] = info;
+            }
+            else
+            {
+                cachedRooms.Add(info.Name, info);
+            }
+            
+        }
+        List<RoomInfo> rooms = cachedRooms.Values.ToList();
         Debug.Log("OnNetworkRoomsUpdate: " + string.Join(" ", rooms.Select(p => p.ToStringFull())));
         onRoomsUpdate.Invoke(rooms);
     }
@@ -152,4 +223,27 @@ public class Network : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.NickName = Hash + "-" + Name;
         PlayerPrefs.SetString("Name", Name);
     }
+
+    
+//            if (PhotonNetwork.IsMasterClient)
+//        {
+//            int minPing = int.MaxValue;
+//    Player minPingPlayer = null;
+
+//            foreach (Player player in PhotonNetwork.PlayerList)
+//            {
+//                int ping = Convert.ToInt32(player.CustomProperties["Ping"].ToString());
+//                if (ping<minPing)
+//                {
+//                    minPing = ping;
+//                    minPingPlayer = player;
+//                }
+//Debug.Log(player.GetName() + " " + ping);
+//            }
+
+//            if (minPingPlayer != null)
+//            {
+//                PhotonNetwork.SetMasterClient(minPingPlayer);
+//            }
+//        }
 }

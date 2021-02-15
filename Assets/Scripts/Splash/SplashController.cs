@@ -17,7 +17,9 @@ public class SplashController : MonoBehaviour
     public int newestVersionCode;
     public int currentVersionCode;
 
+    public Image backgroundImage;
     public AnimationCurve cameraHightPerTime;
+
     public TextMeshProUGUI logoText;
     public float logoShowDelay = 2f;
     public float logoShowTime = 1f;
@@ -33,6 +35,8 @@ public class SplashController : MonoBehaviour
 
     public GameObject loader;
     public float loadDelayTime = 0.6f;
+    public float loadHideDelayTime = 0.3f;
+    public float LoadHideTime = 0.3f;
     public float showLoaderTime = 0.3f;
     public RectTransform loaderTransform;
     public RectTransform loaderProgressTransform;
@@ -57,9 +61,11 @@ public class SplashController : MonoBehaviour
         {
             float t = 0;
             float totalTime = logoShowTime + logoShowDelay;
+            float startBackgroundAlpha = backgroundImage.color.a;
             while (t < logoShowTime + logoShowDelay)
             {
                 t += Time.deltaTime;
+                backgroundImage.color = new Color(backgroundImage.color.r, backgroundImage.color.g, backgroundImage.color.b, startBackgroundAlpha * t / totalTime);
                 Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, cameraHightPerTime.Evaluate(t / totalTime), Camera.main.transform.position.z);
                 yield return null;
             }
@@ -126,18 +132,19 @@ public class SplashController : MonoBehaviour
         {
             yield return ShowLoader();
             yield return StartLoad();
+            //yield return HideLoader();
         }
         else
         {
             updatePanel.SetActive(true);
             updatePanel.GetComponent<TextMeshProUGUI>().text = "Доступно обновление! v" + newestVersion;
             
-            foreach(var pair in links)
-            {
-                GameObject link = Instantiate(downloadLinkPrefab, updatePanel.transform);
-                link.GetComponent<TextMeshProUGUI>().text = pair.Key;
-                link.GetComponent<Button>().onClick.AddListener(delegate { Application.OpenURL(pair.Value); });
-            }
+            //foreach(var pair in links)
+            //{
+            //    GameObject link = Instantiate(downloadLinkPrefab, updatePanel.transform);
+            //    link.GetComponent<TextMeshProUGUI>().text = pair.Key;
+            //    link.GetComponent<Button>().onClick.AddListener(delegate { Application.OpenURL(pair.Value); });
+            //}
         }
     }
 
@@ -164,6 +171,34 @@ public class SplashController : MonoBehaviour
 
             yield return null;
         }
+    }
+
+    IEnumerator HideLoader()
+    {
+        yield return new WaitForSeconds(loadHideDelayTime);
+
+        float loaderImageStartAlpha = loaderImage.color.a;
+        float loaderProgressImageStartAlpha = loaderProgressImage.color.a;
+
+        loaderImage.color = new Color(loaderImage.color.r, loaderImage.color.g, loaderImage.color.b, 0f);
+        loaderProgressImage.color = new Color(loaderProgressImage.color.r, loaderProgressImage.color.g, loaderProgressImage.color.b, 0f);
+
+        loader.SetActive(true);
+
+        float t = 0;
+        while (t < showLoaderTime)
+        {
+            t += Time.deltaTime;
+            float progress = 1 - Mathf.Clamp(t / showLoaderTime, 0f, 1f);
+
+            loaderImage.color = new Color(loaderImage.color.r, loaderImage.color.g, loaderImage.color.b, progress * loaderImageStartAlpha);
+            loaderProgressImage.color = new Color(loaderProgressImage.color.r, loaderProgressImage.color.g, loaderProgressImage.color.b, progress * loaderProgressImageStartAlpha);
+
+            yield return null;
+        }
+
+        loader.SetActive(false);
+        SceneManager.LoadScene("Menu");
     }
 
     IEnumerator StartLoad()
@@ -198,5 +233,10 @@ public class SplashController : MonoBehaviour
     public void ClearPrefs()
     {
         PlayerPrefs.DeleteAll();
+    }
+
+    public void OpenLink(string url)
+    {
+        Application.OpenURL(url);
     }
 }

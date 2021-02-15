@@ -80,22 +80,36 @@ public class GUIController : MonoBehaviourPunCallbacks
             GameObject avatar = Instantiate(avatarPrefab, avatarPanel);
             avatar.transform.GetChild(0).GetComponent<Image>().color = kingdom.color;
             string name = kingdom.name;
-            Player p = PhotonNetwork.PlayerList[kingdom.id];
             avatar.GetComponent<Button>().onClick.
                 AddListener(delegate { _chat.OnTap(kingdom.hash); });
             avatar.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = name;
-            avatars.Add(PhotonNetwork.PlayerList[kingdom.id].GetHash(), avatar);
+            if(!PhotonNetwork.PlayerList.Select(p => p.GetHash()).Contains(kingdom.hash))
+            {
+                avatar.transform.GetChild(2).gameObject.SetActive(true);
+            }
+            avatars.Add(kingdom.hash, avatar);
         }
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        avatars[otherPlayer.GetHash()].transform.GetChild(2).gameObject.SetActive(true);
+        if (avatars.ContainsKey(otherPlayer.GetHash()))
+        {
+            avatars[otherPlayer.GetHash()].transform.GetChild(2).gameObject.SetActive(true);
+            if(_chat.targetHash == otherPlayer.GetHash())
+            {
+                _chat.targetHash = "None";
+                _chat.sender.gameObject.SetActive(false);
+            }
+        }
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        avatars[newPlayer.GetHash()].transform.GetChild(2).gameObject.SetActive(false);
+        if (avatars.ContainsKey(newPlayer.GetHash()))
+        {
+            avatars[newPlayer.GetHash()].transform.GetChild(2).gameObject.SetActive(false);
+        }
     }
 
     public void LeaveGame()

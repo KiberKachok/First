@@ -54,12 +54,12 @@ public class GamePanel : MonoBehaviourPunCallbacks
         {
             Vector2 target = new Vector2(slidingMode == SlidingMode.SlidingIn ? _roomWayPoints.x : _roomWayPoints.y, 0);
             Vector2 current = _roomPanelRectTransform.anchoredPosition;
-            
+
             float alpha = maxBackgroundAlpha * (1 - current.x / _roomWayPoints.y);
             var color = backgroundImage.color;
             color = new Color(color.r, color.g, color.b, alpha);
             backgroundImage.color = color;
-            
+
             _roomPanelRectTransform.anchoredPosition = Vector2.MoveTowards(current, target, slidingSpeed * Time.deltaTime);
 
             if (slidingMode == SlidingMode.SlidingOut && current == target)
@@ -68,6 +68,21 @@ public class GamePanel : MonoBehaviourPunCallbacks
                 roomPanel.SetActive(false);
             }
         }
+
+        //Vector2 target = new Vector2(PhotonNetwork.InRoom ? _roomWayPoints.x : _roomWayPoints.y, 0);
+        //Vector2 current = _roomPanelRectTransform.anchoredPosition;
+
+        //float alpha = maxBackgroundAlpha * (1 - current.x / _roomWayPoints.y);
+        //var color = backgroundImage.color;
+        //color = new Color(color.r, color.g, color.b, alpha);
+        //backgroundImage.color = color;
+
+        //_roomPanelRectTransform.anchoredPosition = Vector2.MoveTowards(current, target, slidingSpeed * Time.deltaTime);
+
+        //if (!PhotonNetwork.InRoom && current == target)
+        //{
+        //    roomPanel.SetActive(false);
+        //}
     }
 
     public void FixedUpdate()
@@ -149,7 +164,7 @@ public class GamePanel : MonoBehaviourPunCallbacks
             Destroy(child.gameObject);
         }
 
-        if(yourStartedRooms.Count == 0 && openRooms.Count == 0)
+        if(yourStartedRooms.Count == 0 && openRooms.Count == 0 && otherStartedRooms.Count == 0)
         {
             GameObject roomsLabel = Instantiate(openRoomsLabel, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
             roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "открытые комнаты: " + openRooms.Count;
@@ -175,6 +190,20 @@ public class GamePanel : MonoBehaviourPunCallbacks
             roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "открытые комнаты: " + openRooms.Count;
 
             foreach (RoomInfo roomInfo in openRooms)
+            {
+                GameObject roomObject = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+                roomObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = roomInfo.CustomProperties["Nicknames"] as string;
+                roomObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = roomInfo.PlayerCount + "/∞";
+                roomObject.GetComponent<Button>().onClick.AddListener(delegate { _network.JoinRoom(roomInfo.Name); });
+            }
+        }
+
+        if (otherStartedRooms.Count > 0)
+        {
+            GameObject roomsLabel = Instantiate(otherStartedRoomsLabel, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
+            roomsLabel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "смотреть: " + otherStartedRooms.Count;
+
+            foreach (RoomInfo roomInfo in otherStartedRooms)
             {
                 GameObject roomObject = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity, roomScrollViewTransform);
                 roomObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = roomInfo.CustomProperties["Nicknames"] as string;

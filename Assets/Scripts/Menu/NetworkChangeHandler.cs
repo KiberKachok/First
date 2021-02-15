@@ -18,6 +18,7 @@ public class NetworkChangeHandler : MonoBehaviourPunCallbacks
     ClientState currentState;
     public float currentStateTime = 0;
     public float stateWarningTime = 1f;
+    DisconnectCause disconnectCause;
 
     // Start is called before the first frame update
     void Start()
@@ -41,29 +42,6 @@ public class NetworkChangeHandler : MonoBehaviourPunCallbacks
             currentState = PhotonNetwork.NetworkClientState;
             OnNetworkStateChange(currentState);
         }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (PhotonNetwork.IsConnected)
-            {
-                PhotonNetwork.Reconnect();
-            }
-            else
-            {
-                PhotonNetwork.ConnectUsingSettings();
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            PhotonNetwork.Disconnect();
-        }
-
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            Debug.Log(PhotonNetwork.SendRate);
-            //PhotonNetwork.SendAllOutgoingCommands();
-            Debug.Log(PhotonNetwork.GetPing());
-        }
-
     }
 
     public void Reconnect()
@@ -71,8 +49,19 @@ public class NetworkChangeHandler : MonoBehaviourPunCallbacks
         PhotonNetwork.ConnectUsingSettings();
     }
 
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        disconnectCause = cause;
+    }
+
     public void OnNetworkStateChange(ClientState state)
     {
+        if(state == ClientState.Disconnected)
+        {
+            text.color = normalColor;
+            text.text = state.ToString() + "(" + disconnectCause + ")";
+            return;
+        }
         if (showedStates.Contains(state))
         {
             text.color = normalColor;
