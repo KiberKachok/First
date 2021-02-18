@@ -11,6 +11,8 @@ using System.Linq;
 
 public class Chat : MonoBehaviourPunCallbacks
 {
+    public int nameLengthRestriction = 15;
+
     public string targetHash = "None";
     public RectTransform sender;
     public RectTransform avatarsRect;
@@ -135,7 +137,13 @@ public class Chat : MonoBehaviourPunCallbacks
     public void SendChatMessage(string msg)
     {
         string message = msg;
-        message = message.Replace("{sender}", PhotonNetwork.LocalPlayer.GetName());
+        string name = PhotonNetwork.LocalPlayer.GetName();
+        if(name.Length > nameLengthRestriction)
+        {
+            name = name.Substring(0, nameLengthRestriction) + ".";
+        }
+
+        message = message.Replace("{sender}", name);
         Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == targetHash).ElementAt(0);
         Debug.Log("Отправлено сообщение" + player);
         photonView.RPC("OnTakeMessage", player, PhotonNetwork.LocalPlayer, message);

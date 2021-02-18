@@ -68,21 +68,6 @@ public class GamePanel : MonoBehaviourPunCallbacks
                 roomPanel.SetActive(false);
             }
         }
-
-        //Vector2 target = new Vector2(PhotonNetwork.InRoom ? _roomWayPoints.x : _roomWayPoints.y, 0);
-        //Vector2 current = _roomPanelRectTransform.anchoredPosition;
-
-        //float alpha = maxBackgroundAlpha * (1 - current.x / _roomWayPoints.y);
-        //var color = backgroundImage.color;
-        //color = new Color(color.r, color.g, color.b, alpha);
-        //backgroundImage.color = color;
-
-        //_roomPanelRectTransform.anchoredPosition = Vector2.MoveTowards(current, target, slidingSpeed * Time.deltaTime);
-
-        //if (!PhotonNetwork.InRoom && current == target)
-        //{
-        //    roomPanel.SetActive(false);
-        //}
     }
 
     public void FixedUpdate()

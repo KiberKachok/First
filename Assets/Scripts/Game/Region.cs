@@ -8,6 +8,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine.UI;
+using CodeStage.AntiCheat.ObscuredTypes;
 
 public class Region : SerializedMonoBehaviour
 {
@@ -20,7 +21,7 @@ public class Region : SerializedMonoBehaviour
     [SerializeField]
     public float currentUnits = 0;
     [SerializeField]
-    private int _units;
+    private ObscuredInt _units;
     [ShowInInspector]
     public int Units
     {
@@ -111,6 +112,10 @@ public class Region : SerializedMonoBehaviour
     {
         material = GetComponent<MeshRenderer>().material;
         SpawnCounter();
+        if (cellType == CellType.Land)
+        {
+            Units = 10;
+        }
     }
 
     public void Recalculate()
