@@ -16,6 +16,6 @@ public class FantasyNameGenerator
     public static string GetRandomName()
     {
         return names[Random.Range(0, names.Length)];
-        
+
     }
 }

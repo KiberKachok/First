@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Photon.Pun;
 using UnityEngine;
 
 public class UnitsController : MonoBehaviour
@@ -21,18 +20,20 @@ public class UnitsController : MonoBehaviour
     public Kingdom kingdom;
     public Region from;
     public Region to;
-    public float speed = 0.6f;
     public float percentsToDest = 0f;
+
+    float t;
+    float timeToGetTarget;
 
     private void Start()
     {
         if(to.cellType == Region.CellType.Land)
         {
-            speed = 0.3f;
+            timeToGetTarget = Vector3.Distance(from.transform.position, to.transform.position) / 0.31f;
         }
         else
         {
-            speed = 0.44f;
+            timeToGetTarget = Vector3.Distance(from.transform.position, to.transform.position) / 0.42f;
         }
     }
 
@@ -41,12 +42,12 @@ public class UnitsController : MonoBehaviour
         percentsToDest = Vector3.Distance(transform.position, from.transform.position) / Vector3.Distance(from.transform.position, to.transform.position);
         if (transform.position != to.transform.position)
         {
-            transform.position = Vector3.MoveTowards(transform.position, to.transform.position,
-                speed * Time.deltaTime);
+            t += Time.deltaTime / timeToGetTarget;
+            transform.position = Vector3.Lerp(from.transform.position, to.transform.position, t);
         }
         else
         {
-            if (PhotonNetwork.IsMasterClient || GameCore.main.isImitatorMode)
+            if (GameCore.main.isImitatorMode)
             {
                 if (to.kingdom != null && to.kingdom.hash == kingdom.hash)
                 {
@@ -61,8 +62,6 @@ public class UnitsController : MonoBehaviour
                         if (to.IsCapital)
                         {
                             to.IsCapital = false;
-                            Debug.Log(to.kingdom);
-                            GameCore.main.CaptureKingdom(to.kingdom, kingdom);
                         }
                         to.kingdom = kingdom;
                     }

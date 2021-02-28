@@ -2,14 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using Photon.Pun;
-using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using RealmsNetwork;
 
-public class Chat : MonoBehaviourPunCallbacks
+public class Chat : NetworkedMonoBehaviour
 {
     public int nameLengthRestriction = 15;
 
@@ -29,11 +28,11 @@ public class Chat : MonoBehaviourPunCallbacks
 
     public List<string> mutedPlayers = new List<string>();
     
-    private GUIController _guiController;
+    public GUIAvatars guiAvatars;
     
     void Awake()
     {
-        _guiController = FindObjectOfType<GUIController>();
+
     }
 
     private void Start()
@@ -41,17 +40,12 @@ public class Chat : MonoBehaviourPunCallbacks
 
     }
 
-    public void OnTap(string hash)
+    public void OnTapOnAvatar(string hash)
     {
         if (targetHash == "None")
         {
-            if (PhotonNetwork.PlayerList.Select(p => p.GetHash()).Contains(hash))
-            {
-                Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == hash).ElementAt(0);
-                Debug.Log("Установлен получатель " + player.GetName());
-                targetHash = hash;
-                ShowSender(hash);
-            }
+            targetHash = hash;
+            ShowSender(hash);
         }
         else
         {
@@ -99,7 +93,7 @@ public class Chat : MonoBehaviourPunCallbacks
         senderActivePageNumber = 0;
         UpdateSender();
         sender.gameObject.SetActive(true);
-        sender.anchoredPosition = new Vector2(_guiController.avatars[hash].GetComponent<RectTransform>().anchoredPosition.x, sender.anchoredPosition.y);
+        sender.anchoredPosition = new Vector2(guiAvatars.avatars[hash].GetComponent<RectTransform>().anchoredPosition.x, sender.anchoredPosition.y);
     }
 
     public void HideSender()
@@ -137,27 +131,28 @@ public class Chat : MonoBehaviourPunCallbacks
     public void SendChatMessage(string msg)
     {
         string message = msg;
-        string name = PhotonNetwork.LocalPlayer.GetName();
-        if(name.Length > nameLengthRestriction)
+        string nickname = Client.main.nickname;
+        if(nickname.Length > nameLengthRestriction)
         {
-            name = name.Substring(0, nameLengthRestriction) + ".";
+            nickname = nickname.Substring(0, nameLengthRestriction) + ".";
         }
 
-        message = message.Replace("{sender}", name);
-        Player player = PhotonNetwork.PlayerList.Where(k => k.GetHash() == targetHash).ElementAt(0);
-        Debug.Log("Отправлено сообщение" + player);
-        photonView.RPC("OnTakeMessage", player, PhotonNetwork.LocalPlayer, message);
+        message = message.Replace("<b>{sender}</b>", nickname);
+        Client.main.SendMessage(Client.main.hash, targetHash, message);
         HideSender();
     }
 
-    [PunRPC]
-    public void OnTakeMessage(Player p, string message)
+    public void OnTakeMessage(string senderHash, string message)
     {
-        Debug.Log("Получено сообщение: «" + message + "»");
-        if (!mutedPlayers.Contains(p.GetHash()))
+        if (!mutedPlayers.Contains(senderHash))
         {
             GameObject m = Instantiate(receivedMessagePrefab, Vector3.zero, Quaternion.identity, chatBox);
             m.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = message;
         }
+    }
+
+    public override void OnMessageReceived(string senderHash, string message)
+    {
+        OnTakeMessage(senderHash, message);
     }
 }
