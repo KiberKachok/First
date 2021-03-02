@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -507,11 +507,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7447ab6e819f62e45bbfcb117212b277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameConfigLink: https://pastebin.com/raw/qs5eXmfN
+  gameConfigLink: https://pastebin.com/raw/cCPZcC5J
   currentVersion: 
   newestVersion: 
   newestVersionCode: 0
-  currentVersionCode: 11
+  currentVersionCode: 12
   backgroundImage: {fileID: 1000305742}
   cameraHightPerTime:
     serializedVersion: 2
@@ -4826,6 +4826,7 @@ MonoBehaviour:
   unitsControllers: []
   kingdomsData: None
   isCamerAligned: 0
+  isFirstGameDataReceiving: 1
   unitsPrefab: {fileID: 6628533285107335369, guid: 28be52347b5c0d64195eae57f9fc3c71,
     type: 3}
   roomSeed: 0

@@ -9,12 +9,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Sirenix.OdinInspector;
+using UnityEngine.Networking;
 
 namespace RealmsNetwork
 {
     public partial class Client : SerializedMonoBehaviour
     {
-        public bool isLocal;
+        string gameConfigLink;
         public string adress;
 
         EventBasedNetListener listener;
@@ -66,12 +67,13 @@ namespace RealmsNetwork
         void Start()
         {
             version = Application.version;
-            string hashTmp = PlayerPrefs.GetString("hash");
-            if(hashTmp == string.Empty)
-            {
-                hash = Guid.NewGuid().ToString().Substring(0, 8);
-                PlayerPrefs.SetString("hash", hash);
-            }
+            //string hashTmp = PlayerPrefs.GetString("hash");
+            //if(hashTmp == string.Empty)
+            //{
+            //    hash = Guid.NewGuid().ToString().Substring(0, 8);
+            //    PlayerPrefs.SetString("hash", hash);
+            //}
+            hash = Guid.NewGuid().ToString().Substring(0, 8);
 
             listener = new EventBasedNetListener();
             listener.NetworkErrorEvent += (endPoint, socketError) => OnNetworkError(endPoint, socketError);
@@ -89,7 +91,7 @@ namespace RealmsNetwork
             connectionData.Put(version);
             connectionData.Put(hash);
             connectionData.Put(nickname);
-            client.Connect(isLocal ? "localhost" : "178.154.245.129", 9050, connectionData);
+            client.Connect(adress, 9050, connectionData);
             Debug.Log("Client started!");
             ConnectionState = ConnectionState.Connecting;
         }

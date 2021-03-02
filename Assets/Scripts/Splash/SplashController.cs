@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
+using RealmsNetwork;
 
 public class SplashController : MonoBehaviour
 {
@@ -105,7 +106,6 @@ public class SplashController : MonoBehaviour
         while (rawData == string.Empty)
         {
             UnityWebRequest www = UnityWebRequest.Get(gameConfigLink);
-            //www.SendWebRequest();
             yield return www.SendWebRequest();
             rawData = www.downloadHandler.text;
             if (www.isNetworkError)
@@ -119,14 +119,11 @@ public class SplashController : MonoBehaviour
 
         connectionPanel.SetActive(false);
 
-        string[] data = rawData.Split('\n')[0].Split('-'); // {версия}-{название:ссылка|название:ссылка}
+        string[] data = rawData.Split('\n').ToArray();
         newestVersionCode = Convert.ToInt32(data[0]);
         newestVersion = data[1];
-        Dictionary<string, string> links = data[2]
-            .Split('|')
-            .Select(p => p.Split(':'))
-            .Select(p => new KeyValuePair<string, string>(p[0], p[1]))
-            .ToDictionary(pair => pair.Key, pair => pair.Value);
+        string serverIp = data[2];
+        Debug.Log(newestVersionCode + "\n" + newestVersion);
 
         if (currentVersionCode >= newestVersionCode)
         {
@@ -138,13 +135,6 @@ public class SplashController : MonoBehaviour
         {
             updatePanel.SetActive(true);
             updatePanel.GetComponent<TextMeshProUGUI>().text = "Доступно обновление! v" + newestVersion;
-            
-            //foreach(var pair in links)
-            //{
-            //    GameObject link = Instantiate(downloadLinkPrefab, updatePanel.transform);
-            //    link.GetComponent<TextMeshProUGUI>().text = pair.Key;
-            //    link.GetComponent<Button>().onClick.AddListener(delegate { Application.OpenURL(pair.Value); });
-            //}
         }
     }
 
