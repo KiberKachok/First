@@ -325,6 +325,7 @@ namespace RealmsNetwork
     {
         Connecting,
         Connected,
-        Disconnected
+        Disconnected,
+        UpdateRequired
     }
 }

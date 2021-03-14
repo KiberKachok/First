@@ -77,6 +77,7 @@ public class GameCore : NetworkedMonoBehaviour
     public static GameCore main;
 
     public GameObject capitalMarkPrefab;
+    public GameObject nicknamePrefab;
 
     public bool isImitatorMode = false;
     public int botsCount = 10;
@@ -279,6 +280,18 @@ public class GameCore : NetworkedMonoBehaviour
 
             if (regions[i].IsCapital != regionsCapitals[i])
             {
+                if (regionsCapitals[i])
+                {
+                    GameObject nicknameObject = Instantiate(GameCore.main.nicknamePrefab, regions[i].transform.position + new Vector3(-0.29f, 0f, 0f), Quaternion.Euler(270 + 180, 0, -90), regions[i].transform);
+                    nicknameObject.name = "Nickname";
+                    nicknameObject.transform.GetChild(0).GetComponent<TextMeshPro>().text = newKingdom.name;
+                }
+                else
+                {
+                    DestroyImmediate(regions[i].transform.Find("Nickname").gameObject);
+
+                }
+
                 regions[i].IsCapital = regionsCapitals[i];
             }
         }
@@ -329,5 +342,16 @@ public class GameCore : NetworkedMonoBehaviour
         {
             Destroy(g);
         }
+    }
+
+    [ContextMenu("GetNeighboursText")]
+    public void GetNeighboursText()
+    {
+        string info = "";
+        for(int i = 0; i < regions.Length; i++)
+        {
+            info += $"new int[] {{{string.Join(",", regions[i].neighbours.Select(p => p.id))}}},\n";
+        }
+        Debug.Log(info);
     }
 }

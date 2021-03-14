@@ -118,7 +118,6 @@ public class SplashController : MonoBehaviour
         }
 
         connectionPanel.SetActive(false);
-
         string[] data = rawData.Split('\n').ToArray();
         newestVersionCode = Convert.ToInt32(data[0]);
         newestVersion = data[1];

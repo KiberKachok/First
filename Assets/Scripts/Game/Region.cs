@@ -87,11 +87,12 @@ public class Region : SerializedMonoBehaviour
 
                 if (_isCapital)
                 {
-                    Instantiate(GameCore.main.capitalMarkPrefab, transform.position, Quaternion.Euler(270 + 180, 0, -90), transform);
+                    GameObject mark = Instantiate(GameCore.main.capitalMarkPrefab, transform.position, Quaternion.Euler(270 + 180, 0, -90), transform);
+                    mark.name = "CapitalMark";
                 }
                 else
                 {
-                    DestroyImmediate(transform.GetChild(1).gameObject);
+                    DestroyImmediate(transform.Find("CapitalMark").gameObject);
                 }
             }
         }

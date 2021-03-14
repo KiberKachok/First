@@ -511,7 +511,7 @@ MonoBehaviour:
   currentVersion: 
   newestVersion: 
   newestVersionCode: 0
-  currentVersionCode: 12
+  currentVersionCode: 14
   backgroundImage: {fileID: 1000305742}
   cameraHightPerTime:
     serializedVersion: 2
@@ -4833,6 +4833,7 @@ MonoBehaviour:
   palette: {fileID: 11400000, guid: f13dcb383e390814fa4032c36b13f579, type: 2}
   capitalMarkPrefab: {fileID: 5617753271406766184, guid: d22b612a734064542bfcdb13fe9fe3ae,
     type: 3}
+  nicknamePrefab: {fileID: 0}
   isImitatorMode: 1
   botsCount: 6
   botStartRegions:

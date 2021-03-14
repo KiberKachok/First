@@ -26,6 +26,9 @@ public class UIConnectionState : NetworkedMonoBehaviour
             case ConnectionState.Disconnected:
                 connectionStateText.text = "Отключено (Проверьте интернет-соединение)";
                 break;
+            case ConnectionState.UpdateRequired:
+                connectionStateText.text = "Требуется обновление";
+                break;
         }
     }
 }

@@ -2968,6 +2968,8 @@ MonoBehaviour:
   palette: {fileID: 11400000, guid: f13dcb383e390814fa4032c36b13f579, type: 2}
   capitalMarkPrefab: {fileID: 5617753271406766184, guid: d22b612a734064542bfcdb13fe9fe3ae,
     type: 3}
+  nicknamePrefab: {fileID: 3580415677544957151, guid: bd40031945547fb43a6e6635c9073d28,
+    type: 3}
   isImitatorMode: 0
   botsCount: 10
   botStartRegions: []
